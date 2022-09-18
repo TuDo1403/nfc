@@ -98,7 +98,7 @@ contract NFC is
             IERC20Permit(token).permit(
                 sender,
                 address(this),
-                price *= 2**decimals,
+                price *= 1 << decimals,
                 deadline_,
                 v,
                 r,

@@ -51,6 +51,14 @@ library BitMap256 {
         else unset(bitmap_, value_);
     }
 
+    function setTo(
+        uint256 bitmap_,
+        uint256 value_,
+        bool status_
+    ) internal pure returns (uint256) {
+        return status_ ? set(bitmap_, value_) : unset(bitmap_, value_);
+    }
+
     function set(BitMap storage bitmap_, uint256 value_) internal {
         assembly {
             mstore(0x00, value_)
@@ -65,13 +73,13 @@ library BitMap256 {
     function set(uint256 bitmap_, uint256 value_)
         internal
         pure
-        returns (uint256 yes)
+        returns (uint256 res)
     {
         assembly {
             mstore(0x00, value_)
             mstore(0x00, keccak256(0x00, 32))
             mstore(0x00, or(bitmap_, shl(and(mload(0x00), 0xff), 1)))
-            yes := mload(0x00)
+            res := mload(0x00)
         }
     }
 
@@ -83,6 +91,19 @@ library BitMap256 {
                 bitmap_.slot,
                 and(sload(bitmap_.slot), not(shl(and(mload(0x00), 0xff), 1)))
             )
+        }
+    }
+
+    function unset(uint256 bitmap_, uint256 value_)
+        internal
+        pure
+        returns (uint256 res)
+    {
+        assembly {
+            mstore(0x00, value_)
+            mstore(0x00, keccak256(0x00, 32))
+            mstore(0x00, and(bitmap_, not(shl(and(mload(0x00), 0xff), 1))))
+            res := mload(0x00)
         }
     }
 }

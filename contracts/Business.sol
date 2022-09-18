@@ -5,11 +5,9 @@ import "./external/access/Ownable.sol";
 
 import "./interfaces/IBusiness.sol";
 
-import "./libraries/AddressLib.sol";
 import "./libraries/BitMap256.sol";
 
 contract Business is Ownable, IBusiness {
-    using AddressLib for address;
     using BitMap256 for uint256;
     using BitMap256 for BitMap256.BitMap;
 
@@ -40,11 +38,19 @@ contract Business is Ownable, IBusiness {
         _setBusinesses(data_);
     }
 
-    function setBusiness(address addr) external onlyOwner {
-        _businesses.set(addr.fillLast96Bits());
+    function updateBusinessAddress(address addr_, bool status_)
+        external
+        override
+        onlyOwner
+    {
+        uint256 uintAddr;
+        assembly {
+            uintAddr := addr_
+        }
+        _businesses.setTo(uintAddr, status_);
     }
 
-    function setBusinessAddress(address[] calldata addrs_)
+    function updateBusinessAddresses(address[] calldata addrs_, bool status_)
         external
         override
         onlyOwner
@@ -57,7 +63,7 @@ contract Business is Ownable, IBusiness {
         uint256 length = addrs_.length;
         uint256 bitmap = _businesses.data;
         for (uint256 i; i < length; ) {
-            bitmap = bitmap.set(uintAddrs[i]);
+            bitmap = bitmap.setTo(uintAddrs[i], status_);
             unchecked {
                 ++i;
             }
