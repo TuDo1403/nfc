@@ -1,6 +1,6 @@
-import { HardhatUserConfig } from "hardhat/config";
 import "@nomicfoundation/hardhat-toolbox";
 import "hardhat-contract-sizer";
+import { HardhatUserConfig } from "hardhat/config";
 
 const config: HardhatUserConfig = {
   solidity: {
@@ -25,7 +25,7 @@ const config: HardhatUserConfig = {
     enabled: true,
     excludeContracts: [],
     src: "./contracts",
-  }
+  },
 };
 
 export default config;

@@ -13,7 +13,11 @@ library BitMap256 {
         }
     }
 
-    function get(uint256 bitmap_, uint256 value_) internal pure returns (bool yes) {
+    function get(uint256 bitmap_, uint256 value_)
+        internal
+        pure
+        returns (bool yes)
+    {
         assembly {
             mstore(0x00, value_)
             mstore(0x00, keccak256(0x00, 32))
@@ -58,14 +62,15 @@ library BitMap256 {
         }
     }
 
-    function set(uint256 bitmap_, uint256 value_) internal pure returns (uint256 yes) {
+    function set(uint256 bitmap_, uint256 value_)
+        internal
+        pure
+        returns (uint256 yes)
+    {
         assembly {
             mstore(0x00, value_)
             mstore(0x00, keccak256(0x00, 32))
-            mstore(
-                0x00,
-                or(bitmap_, shl(and(mload(0x00), 0xff), 1))
-            )
+            mstore(0x00, or(bitmap_, shl(and(mload(0x00), 0xff), 1)))
             yes := mload(0x00)
         }
     }

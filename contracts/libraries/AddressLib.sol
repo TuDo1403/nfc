@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.0;
-    
+
 library AddressLib {
     function fromFirst20Bytes(bytes32 bytesValue)
-        internal   
+        internal
         pure
         returns (address addr)
     {
@@ -11,7 +11,6 @@ library AddressLib {
             addr := bytesValue
         }
     }
-
 
     function fillLast12Bytes(address addressValue)
         internal
@@ -24,7 +23,7 @@ library AddressLib {
     }
 
     function fromFirst160Bits(uint256 uintValue)
-        internal 
+        internal
         pure
         returns (address addr)
     {
@@ -54,7 +53,7 @@ library AddressLib {
     }
 
     function fillFirst96Bits(address addressValue)
-        internal 
+        internal
         pure
         returns (uint256 value)
     {
