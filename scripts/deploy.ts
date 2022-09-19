@@ -1,23 +1,47 @@
-import { ethers } from "hardhat";
+import { Contract, ContractFactory } from "ethers";
+import { ethers, upgrades } from "hardhat";
 
-async function main() {
-  const currentTimestampInSeconds = Math.round(Date.now() / 1000);
-  const ONE_YEAR_IN_SECS = 365 * 24 * 60 * 60;
-  const unlockTime = currentTimestampInSeconds + ONE_YEAR_IN_SECS;
+import * as dotenv from "dotenv"
 
-  const lockedAmount = ethers.utils.parseEther("1");
+async function main(): Promise<void> {
+  // const Treasury: ContractFactory = await ethers.getContractFactory("TreasuryUpgradeable");
+  // const treasury: Contract = await upgrades.deployProxy(
+  //   Treasury,
+  //   [process.env.VERIFIER],
+  //   { kind: "uups", initializer: "init" },
+  // );
+  // await treasury.deployed();
+  // console.log("Treasury deployed to : ", treasury.address);
 
-  const Lock = await ethers.getContractFactory("Lock");
-  const lock = await Lock.deploy(unlockTime, { value: lockedAmount });
+  // const Business: ContractFactory = await ethers.getContractFactory("BusinessUpgradeable");
+  // const business: Contract = await upgrades.deployProxy(
+  //   Business,
+  //   [],
+  //   { kind: "uups", initializer: "init" },
+  // );
+  // await business.deployed();
+  // console.log("Business deployed to : ", business.address);
 
-  await lock.deployed();
+  const ERC20Test: ContractFactory = await ethers.getContractFactory("ERC20Test");
+  const erc20Test: Contract = await ERC20Test.deploy(
+    "PaymentToken", "PMT"
+  );
+  await erc20Test.deployed();
+  console.log("ERC20Test deployed to : ", erc20Test.address);
 
-  console.log(`Lock with 1 ETH and unlock timestamp ${unlockTime} deployed to ${lock.address}`);
+  const RentableNFC: ContractFactory = await ethers.getContractFactory("RentableNFCUpgradeable");
+  const rentableNFC: Contract = await upgrades.deployProxy(
+    RentableNFC,
+    ["RentableNFC", "RNFC", "https://example/token/", 10000, 100, erc20Test.address, "0x2A42bde6C299a02D98E33E1F1BB3886797cbaECC", "0xf6D3B4Fbd90715976587b2058ABeA5F2D0cB517f"],
+    { kind: "uups", initializer: "init" },
+  );
+  await rentableNFC.deployed();
+  console.log("RentableNFC deployed to : ", rentableNFC.address);
 }
 
-// We recommend this pattern to be able to use async/await everywhere
-// and properly handle errors.
-main().catch(error => {
-  console.error(error);
-  process.exitCode = 1;
-});
+main()
+  .then(() => process.exit(0))
+  .catch((error: Error) => {
+    console.error(error);
+    process.exit(1);
+  });
