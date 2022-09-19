@@ -7,6 +7,10 @@ interface IRentableNFC {
     error RentableNFC__Unauthorized();
     error RentableNFC__LimitExceeded();
 
+    event LimitSet(uint256 indexed from, uint256 indexed to);
+
+    function setLimit(uint256 limit_) external;
+
     function setUser(
         uint256 tokenId,
         uint256 deadline_,

@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.15;
 
+import "../external/token/ERC20/extensions/draft-IERC20Permit.sol";
+
 interface INFC {
     error NFC__Expired();
     error NFC__Unexisted();
@@ -19,4 +21,32 @@ interface INFC {
         address indexed from,
         uint256 indexed priceFee
     );
+
+    function deposit(
+        uint256 tokenId_,
+        uint256 deadline_,
+        bytes calldata signature_
+    ) external payable;
+
+    function mint(address to_, uint256 type_) external;
+
+    function setTypeFee(
+        IERC20Permit feeToken_,
+        uint256 type_,
+        uint256 price_,
+        address[] calldata takers_,
+        uint256[] calldata takerPercents_
+    ) external;
+
+    function royaltyInfoOf(uint256 type_)
+        external
+        view
+        returns (
+            address token,
+            uint256 price,
+            address[] memory takers,
+            uint256[] memory takerPercents
+        );
+
+    function typeOf(uint256 tokenId_) external view returns (uint256);
 }
