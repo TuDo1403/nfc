@@ -6,7 +6,6 @@ import "./external-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 
 import "./interfaces-upgradeable/IBusinessUpgradeable.sol";
 
-import "./libraries/AddressLib.sol";
 import "./external-upgradeable/utils/structs/BitMapsUpgradeable.sol";
 
 contract BusinessUpgradeable is
@@ -15,7 +14,6 @@ contract BusinessUpgradeable is
     UUPSUpgradeable
 {
     using BitMapsUpgradeable for BitMapsUpgradeable.BitMap;
-    using AddressLib for address;
 
     ///@dev value is equal to keccak256("BusinessUpgradeable_v1")
     bytes32 public constant VERSION =
@@ -23,7 +21,9 @@ contract BusinessUpgradeable is
 
     BitMapsUpgradeable.BitMap private _businesses;
 
-    function init() external initializer {}
+    function init() external initializer {
+        __Ownable_init();
+    }
 
     function isBusiness(address account_)
         external
@@ -55,9 +55,14 @@ contract BusinessUpgradeable is
         override
         onlyOwner
     {
-        uint256 length = addrs_.length;
+        address[] memory addrs = addrs_;
+        uint256 length = addrs.length;
+        uint256[] memory uintAddrs;
+        assembly {
+            uintAddrs := addrs
+        }
         for (uint256 i; i < length; ) {
-            _businesses.setTo(addrs_[i].fillLast96Bits(), status_);
+            _businesses.setTo(uintAddrs[i], status_);
             unchecked {
                 ++i;
             }

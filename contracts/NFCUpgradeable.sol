@@ -1,16 +1,16 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.15;
 
+import "./external-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import "./external-upgradeable/security/ReentrancyGuardUpgradeable.sol";
 import "./external-upgradeable/token/ERC721/extensions/ERC721RoyaltyUpgradeable.sol";
 import "./external-upgradeable/token/ERC721/presets/ERC721PresetMinterPauserAutoIdUpgradeable.sol";
-import "./external-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 
-import "./internal-upgradeable/WithdrawableUpgradeable.sol";
 import "./internal-upgradeable/LockableUpgradeable.sol";
+import "./internal-upgradeable/WithdrawableUpgradeable.sol";
 
-import "./external-upgradeable/utils/math/SafeCastUpgradeable.sol";
 import "./external-upgradeable/utils/math/MathUpgradeable.sol";
+import "./external-upgradeable/utils/math/SafeCastUpgradeable.sol";
 
 import "./interfaces-upgradeable/INFCUpgradeable.sol";
 import "./interfaces-upgradeable/ITreasuryUpgradeable.sol";
@@ -26,11 +26,11 @@ contract NFCUpgradeable is
     ReentrancyGuardUpgradeable,
     ERC721PresetMinterPauserAutoIdUpgradeable
 {
-    using MathUpgradeable for uint256;
-    using SafeCastUpgradeable for uint256;
     using StringLib for uint256;
     using AddressLib for uint256;
     using AddressLib for address;
+    using MathUpgradeable for uint256;
+    using SafeCastUpgradeable for uint256;
 
     ///@dev value is equal to keccak256("UPGRADER_ROLE")
     bytes32 public constant UPGRADER_ROLE =

@@ -5,12 +5,12 @@ import "./external/access/Ownable.sol";
 
 import "./interfaces/IBusiness.sol";
 
-import "./libraries/AddressLib.sol";
+// import "./libraries/AddressLib.sol";
 import "./external/utils/structs/BitMaps.sol";
 
 contract Business is Ownable, IBusiness {
     using BitMaps for BitMaps.BitMap;
-    using AddressLib for address;
+    // using AddressLib for address;
 
     ///@dev value is equal to keccak256("Business_v1")
     bytes32 public constant VERSION =
@@ -50,9 +50,14 @@ contract Business is Ownable, IBusiness {
         override
         onlyOwner
     {
-        uint256 length = addrs_.length;
+        address[] memory addrs = addrs_;
+        uint256 length = addrs.length;
+        uint256[] memory uintAddrs;
+        assembly {
+            uintAddrs := addrs
+        }
         for (uint256 i; i < length; ) {
-            _businesses.setTo(addrs_[i].fillLast96Bits(), status_);
+            _businesses.setTo(uintAddrs[i], status_);
             unchecked {
                 ++i;
             }
