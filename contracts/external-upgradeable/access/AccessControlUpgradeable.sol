@@ -3,11 +3,11 @@
 
 pragma solidity ^0.8.0;
 
-import "./IAccessControl.sol";
-import "../utils/Context.sol";
-import "../utils/introspection/ERC165.sol";
+import "./IAccessControlUpgradeable.sol";
+import "../utils/ContextUpgradeable.sol";
+import "../utils/introspection/ERC165Upgradeable.sol";
 
-import "../utils/structs/BitMaps.sol";
+import "../utils/structs/BitMapsUpgradeable.sol";
 import "../../libraries/AddressLib.sol";
 
 /**
@@ -48,14 +48,22 @@ import "../../libraries/AddressLib.sol";
  * grant and revoke this role. Extra precautions should be taken to secure
  * accounts that have been granted it.
  */
-abstract contract AccessControl is Context, IAccessControl, ERC165 {
+abstract contract AccessControlUpgradeable is
+    ContextUpgradeable,
+    IAccessControlUpgradeable,
+    ERC165Upgradeable
+{
     using AddressLib for address;
-    using BitMaps for BitMaps.BitMap;
+    using BitMapsUpgradeable for BitMapsUpgradeable.BitMap;
 
-    bytes32 public constant DEFAULT_ADMIN_ROLE = 0x00;
+    function __AccessControl_init() internal onlyInitializing {}
+
+    function __AccessControl_init_unchained() internal onlyInitializing {}
 
     mapping(bytes32 => bytes32) private _adminRoles;
-    mapping(bytes32 => BitMaps.BitMap) private _roles;
+    mapping(bytes32 => BitMapsUpgradeable.BitMap) private _roles;
+
+    bytes32 public constant DEFAULT_ADMIN_ROLE = 0x00;
 
     /**
      * @dev Modifier that checks that an account has a specific role. Reverts
@@ -68,7 +76,7 @@ abstract contract AccessControl is Context, IAccessControl, ERC165 {
      * _Available since v4.1._
      */
     modifier onlyRole(bytes32 role) {
-        _checkRole(role, _msgSender());
+        _checkRole(role);
         _;
     }
 
@@ -83,7 +91,7 @@ abstract contract AccessControl is Context, IAccessControl, ERC165 {
         returns (bool)
     {
         return
-            interfaceId == type(IAccessControl).interfaceId ||
+            interfaceId == type(IAccessControlUpgradeable).interfaceId ||
             super.supportsInterface(interfaceId);
     }
 
@@ -267,4 +275,11 @@ abstract contract AccessControl is Context, IAccessControl, ERC165 {
             emit RoleRevoked(role, account, _msgSender());
         }
     }
+
+    /**
+     * @dev This empty reserved space is put in place to allow future versions to add new
+     * variables without shifting down storage in the inheritance chain.
+     * See https://docs.openzeppelin.com/contracts/4.x/upgradeable#storage_gaps
+     */
+    uint256[48] private __gap;
 }

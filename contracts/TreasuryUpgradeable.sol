@@ -1,38 +1,36 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.15;
 
-import "./external/access/AccessControl.sol";
-import "./external/security/Pausable.sol";
-import "./external/security/ReentrancyGuard.sol";
+import "./external-upgradeable/proxy/utils/UUPSUpgradeable.sol";
+import "./external-upgradeable/access/AccessControlUpgradeable.sol";
+import "./external-upgradeable/security/PausableUpgradeable.sol";
+import "./external-upgradeable/security/ReentrancyGuardUpgradeable.sol";
 
-import "./internal/Lockable.sol";
-import "./internal/Withdrawable.sol";
+import "./internal-upgradeable/LockableUpgradeable.sol";
+import "./internal-upgradeable/WithdrawableUpgradeable.sol";
 
-import "./utils/NoProxy.sol";
-
-import "./interfaces/ITreasury.sol";
+import "./interfaces-upgradeable/ITreasuryUpgradeable.sol";
 
 import "./libraries/AddressLib.sol";
-import "./external/utils/structs/BitMaps.sol";
+import "./external-upgradeable/utils/structs/BitMapsUpgradeable.sol";
 
-contract Treasury is
-    NoProxy,
-    Lockable,
-    Pausable,
-    ITreasury,
-    Withdrawable,
-    AccessControl,
-    ReentrancyGuard
+contract TreasuryUpgradeable is
+    UUPSUpgradeable,
+    LockableUpgradeable,
+    PausableUpgradeable,
+    ITreasuryUpgradeable,
+    WithdrawableUpgradeable,
+    AccessControlUpgradeable,
+    ReentrancyGuardUpgradeable
 {
     using AddressLib for uint256;
     using AddressLib for address;
     using AddressLib for bytes32;
-    using BitMaps for BitMaps.BitMap;
+    using BitMapsUpgradeable for BitMapsUpgradeable.BitMap;
 
-    ///@dev value is equal to keccak256("Treasury_v1")
+    ///@dev value is equal to keccak256("TreasuryUpgradeable_v1")
     bytes32 public constant VERSION =
-        0xea88ed743f2d0583b98ad2b145c450d84d46c8e4d6425d9e0c7cd0e4930fce2f;
-
+        0x1e5497e76d6950fcb48f078aa81db1fbcc89f040fd2a68ea9bd20b6f4526ce3d;
     ///@dev value is equal to keccak256("PAUSER_ROLE")
     bytes32 public constant PAUSER_ROLE =
         0x65d7a28e3265b37a6474929f336521b332c1681b933f6cb9f3376673440d862a;
@@ -45,9 +43,11 @@ contract Treasury is
 
     bytes32 private _verifier;
 
-    BitMaps.BitMap private _acceptedPayments;
+    BitMapsUpgradeable.BitMap private _acceptedPayments;
 
-    constructor(address verifier_) payable EIP712(type(Treasury).name, "1") {
+    function init(address verifier_) external initializer {
+        __EIP712_init(type(TreasuryUpgradeable).name, "1");
+
         __updateVerifier(verifier_);
 
         address sender = _msgSender();
@@ -89,7 +89,6 @@ contract Treasury is
         bytes calldata signature_
     ) external nonReentrant whenNotPaused {
         address to = _msgSender();
-        _onlyEOA(to);
         _checkLock(to);
 
         _withdraw(
@@ -155,4 +154,18 @@ contract Treasury is
     function __updateVerifier(address verifier_) internal {
         _verifier = verifier_.fillLast12Bytes();
     }
+
+    function _authorizeUpgrade(address newImplementation)
+        internal
+        virtual
+        override
+        onlyRole(DEFAULT_ADMIN_ROLE)
+    {}
+
+    /**
+     * @dev This empty reserved space is put in place to allow future versions to add new
+     * variables without shifting down storage in the inheritance chain.
+     * See https://docs.openzeppelin.com/contracts/4.x/upgradeable#storage_gaps
+     */
+    uint256[48] private __gap;
 }

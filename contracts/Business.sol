@@ -5,21 +5,20 @@ import "./external/access/Ownable.sol";
 
 import "./interfaces/IBusiness.sol";
 
-import "./libraries/BitMap256.sol";
+import "./libraries/AddressLib.sol";
+import "./external/utils/structs/BitMaps.sol";
 
 contract Business is Ownable, IBusiness {
-    using BitMap256 for uint256;
-    using BitMap256 for BitMap256.BitMap;
+    using BitMaps for BitMaps.BitMap;
+    using AddressLib for address;
 
     ///@dev value is equal to keccak256("Business_v1")
     bytes32 public constant VERSION =
         0x76b07dcd98549e38947b0da2f27dd575fcde72bfc5ceccc9684d3f6a40f840c2;
 
-    BitMap256.BitMap private _businesses;
+    BitMaps.BitMap private _businesses;
 
-    constructor(uint256 bitmap_) payable {
-        _setBusinesses(bitmap_);
-    }
+    constructor() payable {}
 
     function isBusiness(address account_)
         external
@@ -32,10 +31,6 @@ contract Business is Ownable, IBusiness {
             uintAccount := account_
         }
         return _businesses.get(uintAccount);
-    }
-
-    function setBusinessAddress(uint256 data_) external override onlyOwner {
-        _setBusinesses(data_);
     }
 
     function updateBusinessAddress(address addr_, bool status_)
@@ -55,25 +50,13 @@ contract Business is Ownable, IBusiness {
         override
         onlyOwner
     {
-        address[] memory addrs = addrs_;
-        uint256[] memory uintAddrs;
-        assembly {
-            uintAddrs := addrs
-        }
         uint256 length = addrs_.length;
-        uint256 bitmap = _businesses.data;
         for (uint256 i; i < length; ) {
-            bitmap = bitmap.setTo(uintAddrs[i], status_);
+            _businesses.setTo(addrs_[i].fillLast96Bits(), status_);
             unchecked {
                 ++i;
             }
         }
-
-        _businesses.data = bitmap;
         emit BusinessesSet(addrs_);
-    }
-
-    function _setBusinesses(uint256 bitmap_) internal {
-        _businesses.setData(bitmap_);
     }
 }

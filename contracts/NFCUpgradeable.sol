@@ -1,73 +1,99 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.15;
 
-import "./external/security/ReentrancyGuard.sol";
-import "./external/token/ERC721/extensions/ERC721Royalty.sol";
-import "./external/token/ERC721/presets/ERC721PresetMinterPauserAutoId.sol";
+import "./external-upgradeable/security/ReentrancyGuardUpgradeable.sol";
+import "./external-upgradeable/token/ERC721/extensions/ERC721RoyaltyUpgradeable.sol";
+import "./external-upgradeable/token/ERC721/presets/ERC721PresetMinterPauserAutoIdUpgradeable.sol";
+import "./external-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 
-import "./internal/Lockable.sol";
-import "./internal/Withdrawable.sol";
+import "./internal-upgradeable/WithdrawableUpgradeable.sol";
+import "./internal-upgradeable/LockableUpgradeable.sol";
 
-import "./utils/NoProxy.sol";
+import "./external-upgradeable/utils/math/SafeCastUpgradeable.sol";
+import "./external-upgradeable/utils/math/MathUpgradeable.sol";
 
-import "./external/utils/math/SafeCast.sol";
-import "@openzeppelin/contracts/utils/math/Math.sol";
-
-import "./interfaces/INFC.sol";
-import "./interfaces/ITreasury.sol";
-import "./interfaces/IBusiness.sol";
+import "./interfaces-upgradeable/INFCUpgradeable.sol";
+import "./interfaces-upgradeable/ITreasuryUpgradeable.sol";
+import "./interfaces-upgradeable/IBusinessUpgradeable.sol";
 
 import "./libraries/StringLib.sol";
 
-contract NFC is
-    INFC,
-    NoProxy,
-    Lockable,
-    Withdrawable,
-    ReentrancyGuard,
-    ERC721PresetMinterPauserAutoId
+contract NFCUpgradeable is
+    INFCUpgradeable,
+    UUPSUpgradeable,
+    LockableUpgradeable,
+    WithdrawableUpgradeable,
+    ReentrancyGuardUpgradeable,
+    ERC721PresetMinterPauserAutoIdUpgradeable
 {
-    using Math for uint256;
-    using SafeCast for uint256;
+    using MathUpgradeable for uint256;
+    using SafeCastUpgradeable for uint256;
     using StringLib for uint256;
     using AddressLib for uint256;
     using AddressLib for address;
 
-    uint8 public immutable decimals;
-    bytes32 public immutable version;
-    IBusiness public immutable business;
-    ITreasury public immutable treasury;
+    uint256 public decimals;
+    bytes32 public version;
+    bytes32 private _business;
+    bytes32 private _treasury;
 
     uint256 private _defaultFeeTokenInfo;
     mapping(uint256 => RoyaltyInfo) private _typeRoyalty;
 
-    constructor(
-        string memory name_,
-        string memory symbol_,
-        string memory baseURI_,
+    function init(
+        string calldata name_,
+        string calldata symbol_,
+        string calldata baseURI_,
         uint256 decimals_,
         uint256 feeAmount_,
         address feeToken_,
-        ITreasury treasury_,
-        IBusiness business_,
+        ITreasuryUpgradeable treasury_,
+        IBusinessUpgradeable business_,
         bytes32 version_
-    )
-        payable
-        EIP712(name_, "1")
-        ERC721PresetMinterPauserAutoId(name_, symbol_, baseURI_)
-    {
-        version = version_;
-        business = business_;
-        treasury = treasury_;
+    ) external virtual initializer {
+        __NFC_init(
+            name_,
+            symbol_,
+            baseURI_,
+            decimals_,
+            feeAmount_,
+            feeToken_,
+            treasury_,
+            business_,
+            version_
+        );
+    }
 
-        uint8 _decimals;
-        assembly {
-            _decimals := decimals_
-        }
-        decimals = _decimals;
+    function __NFC_init(
+        string calldata name_,
+        string calldata symbol_,
+        string calldata baseURI_,
+        uint256 decimals_,
+        uint256 feeAmount_,
+        address feeToken_,
+        ITreasuryUpgradeable treasury_,
+        IBusinessUpgradeable business_,
+        bytes32 version_
+    ) internal onlyInitializing {
+        __EIP712_init(name_, "1");
+        __UUPSUpgradeable_init();
+        __ERC721PresetMinterPauserAutoId_init(name_, symbol_, baseURI_);
+
         _defaultFeeTokenInfo =
             (feeToken_.fillFirst96Bits() << 96) |
             feeAmount_.toUint96();
+
+        version = version_;
+
+        bytes32 bytes32Treasury;
+        bytes32 bytes32Business;
+        assembly {
+            bytes32Treasury := treasury_
+            bytes32Business := business_
+        }
+        _treasury = bytes32Treasury;
+        _business = bytes32Business;
+        decimals = decimals_ & ~uint8(0);
     }
 
     function withdraw(address to_, uint256 amount_)
@@ -84,9 +110,7 @@ contract NFC is
         uint256 deadline_,
         bytes calldata signature_
     ) external payable virtual override nonReentrant whenNotPaused {
-        address sender = _msgSender();
-        _onlyEOA(sender);
-        _deposit(sender, tokenId_, deadline_, signature_);
+        _deposit(_msgSender(), tokenId_, deadline_, signature_);
     }
 
     function mint(address to_, uint256 type_)
@@ -102,7 +126,7 @@ contract NFC is
     }
 
     function setTypeFee(
-        IERC20Permit feeToken_,
+        IERC20PermitUpgradeable feeToken_,
         uint256 type_,
         uint256 price_,
         address[] calldata takers_,
@@ -195,8 +219,24 @@ contract NFC is
         returns (bool)
     {
         return
-            type(IERC165).interfaceId == interfaceId_ ||
+            type(IERC165Upgradeable).interfaceId == interfaceId_ ||
             super.supportsInterface(interfaceId_);
+    }
+
+    function treasury() public view returns (ITreasuryUpgradeable) {
+        address addr;
+        assembly {
+            addr := sload(_treasury.slot)
+        }
+        return ITreasuryUpgradeable(addr);
+    }
+
+    function business() public view returns (IBusinessUpgradeable) {
+        address addr;
+        assembly {
+            addr := sload(_business.slot)
+        }
+        return IBusinessUpgradeable(addr);
     }
 
     function _deposit(
@@ -214,7 +254,7 @@ contract NFC is
         if (block.timestamp > deadline_) revert NFC__Expired();
         if (signature_.length == 65) {
             (bytes32 r, bytes32 s, uint8 v) = _splitSignature(signature_);
-            IERC20Permit(token).permit(
+            IERC20PermitUpgradeable(token).permit(
                 sender_,
                 address(this),
                 price *= 1 << decimals,
@@ -235,7 +275,7 @@ contract NFC is
                     (price * 100).mulDiv(
                         takerPercents[i],
                         1e4,
-                        Math.Rounding.Zero
+                        MathUpgradeable.Rounding.Zero
                     )
                 );
                 ++i;
@@ -251,14 +291,28 @@ contract NFC is
         address sender = _msgSender();
         _onlyUnlocked(sender, from_, to_);
         uint256 feeTokenInfo = _defaultFeeTokenInfo;
-        if (!business.isBusiness(sender))
+        if (!business().isBusiness(sender))
             _safeTransferFrom(
                 feeTokenInfo.fromLast160Bits(),
                 sender,
-                address(treasury),
+                address(treasury()),
                 feeTokenInfo & ~uint96(0)
             );
 
         super._beforeTokenTransfer(from_, to_, tokenId_);
     }
+
+    function _authorizeUpgrade(address newImplementation)
+        internal
+        virtual
+        override
+        onlyRole(DEFAULT_ADMIN_ROLE)
+    {}
+
+    /**
+     * @dev This empty reserved space is put in place to allow future versions to add new
+     * variables without shifting down storage in the inheritance chain.
+     * See https://docs.openzeppelin.com/contracts/4.x/upgradeable#storage_gaps
+     */
+    uint256[44] private __gap;
 }
