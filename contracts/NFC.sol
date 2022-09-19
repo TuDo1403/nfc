@@ -10,6 +10,7 @@ import "./internal/Withdrawable.sol";
 import "./utils/NoProxy.sol";
 import "./utils/Lockable.sol";
 import "./external/utils/math/SafeCast.sol";
+import "@openzeppelin/contracts/utils/math/Math.sol";
 
 import "./interfaces/INFC.sol";
 import "./interfaces/ITreasury.sol";
@@ -26,6 +27,7 @@ contract NFC is
     ReentrancyGuard,
     ERC721PresetMinterPauserAutoId
 {
+    using Math for uint256;
     using SafeCast for uint256;
     using StringLib for uint256;
     using AddressLib for uint256;
@@ -78,46 +80,13 @@ contract NFC is
     }
 
     function deposit(
-        uint256 type_,
+        uint256 tokenId_,
         uint256 deadline_,
         bytes calldata signature_
-    ) external payable nonReentrant {
-        _requireNotPaused();
+    ) external payable virtual nonReentrant whenNotPaused {
         address sender = _msgSender();
         _onlyEOA(sender);
-        (
-            address token,
-            uint256 price,
-            address[] memory takers,
-            uint256[] memory takerPercents
-        ) = royaltyInfoOf(type_);
-        if (takers.length == 0) revert NFC__Unexisted();
-        if (block.timestamp > deadline_) revert NFC__Expired();
-        if (signature_.length == 65) {
-            (bytes32 r, bytes32 s, uint8 v) = _splitSignature(signature_);
-            IERC20Permit(token).permit(
-                sender,
-                address(this),
-                price *= 1 << decimals,
-                deadline_,
-                v,
-                r,
-                s
-            );
-        }
-
-        uint256 length = takerPercents.length;
-        for (uint256 i; i < length; ) {
-            unchecked {
-                _safeTransferFrom(
-                    token,
-                    sender,
-                    takers[i],
-                    (price * takerPercents[i]) / 1e4
-                );
-                ++i;
-            }
-        }
+        _deposit(sender, tokenId_, deadline_, signature_);
     }
 
     function mint(address to_, uint256 type_) external onlyRole(MINTER_ROLE) {
@@ -126,36 +95,6 @@ contract NFC is
             id = (++_tokenIdTracker << 8) | (type_ & ~uint8(0));
         }
         _mint(to_, id);
-    }
-
-    function royaltyInfoOf(uint256 type_)
-        public
-        view
-        returns (
-            address token,
-            uint256 price,
-            address[] memory takers,
-            uint256[] memory takerPercents
-        )
-    {
-        RoyaltyInfo memory royaltyInfo = _typeRoyalty[type_];
-        bytes32[] memory bytes32Takers = royaltyInfo.takers;
-        assembly {
-            takers := bytes32Takers
-        }
-        uint256 feeData = royaltyInfo.feeData;
-        price = royaltyInfo.feeData & ~uint96(0);
-        token = feeData.fromLast160Bits();
-        uint256 _takerPercents = royaltyInfo.takerPercents;
-        uint256 nTakers = _takerPercents & 0xff;
-        uint256 percentMask = _takerPercents >> 8;
-        takerPercents = new uint256[](nTakers);
-        for (uint256 i; i < nTakers; ) {
-            takerPercents[i] = (percentMask >> (i << 3)) & 0xff;
-            unchecked {
-                ++i;
-            }
-        }
     }
 
     function setTypeFee(
@@ -198,7 +137,37 @@ contract NFC is
         _setBlockUser(account_, status_);
     }
 
-    function typeOf(uint256 tokenId_) external view returns (uint256) {
+    function royaltyInfoOf(uint256 type_)
+        public
+        view
+        returns (
+            address token,
+            uint256 price,
+            address[] memory takers,
+            uint256[] memory takerPercents
+        )
+    {
+        RoyaltyInfo memory royaltyInfo = _typeRoyalty[type_];
+        bytes32[] memory bytes32Takers = royaltyInfo.takers;
+        assembly {
+            takers := bytes32Takers
+        }
+        uint256 feeData = royaltyInfo.feeData;
+        price = royaltyInfo.feeData & ~uint96(0);
+        token = feeData.fromLast160Bits();
+        uint256 _takerPercents = royaltyInfo.takerPercents;
+        uint256 nTakers = _takerPercents & 0xff;
+        uint256 percentMask = _takerPercents >> 8;
+        takerPercents = new uint256[](nTakers);
+        for (uint256 i; i < nTakers; ) {
+            takerPercents[i] = (percentMask >> (i << 3)) & 0xff;
+            unchecked {
+                ++i;
+            }
+        }
+    }
+
+    function typeOf(uint256 tokenId_) public view returns (uint256) {
         ownerOf(tokenId_);
         return tokenId_ & ~uint8(0);
     }
@@ -223,6 +192,50 @@ contract NFC is
         return
             type(IERC165).interfaceId == interfaceId_ ||
             super.supportsInterface(interfaceId_);
+    }
+
+    function _deposit(
+        address sender_,
+        uint256 tokenId_,
+        uint256 deadline_,
+        bytes calldata signature_
+    ) internal virtual {
+        (
+            address token,
+            uint256 price,
+            address[] memory takers,
+            uint256[] memory takerPercents
+        ) = royaltyInfoOf(typeOf(tokenId_));
+        if (block.timestamp > deadline_) revert NFC__Expired();
+        if (signature_.length == 65) {
+            (bytes32 r, bytes32 s, uint8 v) = _splitSignature(signature_);
+            IERC20Permit(token).permit(
+                sender_,
+                address(this),
+                price *= 1 << decimals,
+                deadline_,
+                v,
+                r,
+                s
+            );
+        }
+        emit Deposited(tokenId_, sender_, price);
+        uint256 length = takerPercents.length;
+        for (uint256 i; i < length; ) {
+            unchecked {
+                _safeTransferFrom(
+                    token,
+                    sender_,
+                    takers[i],
+                    (price * 100).mulDiv(
+                        takerPercents[i],
+                        1e4,
+                        Math.Rounding.Zero
+                    )
+                );
+                ++i;
+            }
+        }
     }
 
     function _beforeTokenTransfer(
