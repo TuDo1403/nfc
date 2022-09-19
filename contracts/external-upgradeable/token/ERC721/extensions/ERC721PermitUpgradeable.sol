@@ -27,7 +27,7 @@ abstract contract ERC721PermitUpgradeable is
     }
 
     /// @dev Value is equal to to keccak256("Permit(address spender,uint256 tokenId,uint256 nonce,uint256 deadline)");
-    bytes32 private constant _PERMIT_TYPEHASH =
+    bytes32 private constant _PERMIT_TYPE_HASH =
         0x49ecf333e5b8c95c40fdafc95c1ad136e8914a8fb55e9dc8bb01eaa83a2df9ad;
 
     /// @inheritdoc IERC721PermitUpgradeable
@@ -47,7 +47,7 @@ abstract contract ERC721PermitUpgradeable is
             owner,
             keccak256(
                 abi.encode(
-                    _PERMIT_TYPEHASH,
+                    _PERMIT_TYPE_HASH,
                     spender_,
                     tokenId_,
                     _useNonce(owner),
