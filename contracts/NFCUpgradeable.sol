@@ -44,29 +44,29 @@ contract NFCUpgradeable is
     uint256 private _defaultFeeTokenInfo;
     mapping(uint256 => RoyaltyInfo) private _typeRoyalty;
 
-    function init(
-        string calldata name_,
-        string calldata symbol_,
-        string calldata baseURI_,
-        uint256 decimals_,
-        uint256 feeAmount_,
-        address feeToken_,
-        ITreasuryUpgradeable treasury_,
-        IBusinessUpgradeable business_,
-        bytes32 version_
-    ) external virtual initializer {
-        __NFC_init(
-            name_,
-            symbol_,
-            baseURI_,
-            decimals_,
-            feeAmount_,
-            feeToken_,
-            treasury_,
-            business_,
-            version_
-        );
-    }
+    // function init(
+    //     string calldata name_,
+    //     string calldata symbol_,
+    //     string calldata baseURI_,
+    //     uint256 decimals_,
+    //     uint256 feeAmount_,
+    //     address feeToken_,
+    //     ITreasuryUpgradeable treasury_,
+    //     IBusinessUpgradeable business_,
+    //     bytes32 version_
+    // ) external virtual initializer {
+    //     __NFC_init(
+    //         name_,
+    //         symbol_,
+    //         baseURI_,
+    //         decimals_,
+    //         feeAmount_,
+    //         feeToken_,
+    //         treasury_,
+    //         business_,
+    //         version_
+    //     );
+    // }
 
     function __NFC_init(
         string calldata name_,
