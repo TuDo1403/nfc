@@ -12,9 +12,7 @@ error ERC721Burnable__OnlyOwnerOrApproved();
  * @dev ERC721 Token that can be burned (destroyed).
  */
 
-abstract contract ERC721BurnableUpgradeable is
-    ERC721Upgradeable
-{
+abstract contract ERC721BurnableUpgradeable is ERC721Upgradeable {
     function __ERC721Burnable_init() internal onlyInitializing {}
 
     function __ERC721Burnable_init_unchained() internal onlyInitializing {}

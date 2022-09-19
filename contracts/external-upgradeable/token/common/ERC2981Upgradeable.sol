@@ -22,10 +22,7 @@ import "../../utils/math/MathUpgradeable.sol";
  *
  * _Available since v4.5._
  */
-abstract contract ERC2981Upgradeable is
-    IERC2981Upgradeable,
-    ERC165Upgradeable
-{
+abstract contract ERC2981Upgradeable is IERC2981Upgradeable, ERC165Upgradeable {
     using MathUpgradeable for uint256;
 
     RoyaltyInfo internal _defaultRoyaltyInfo;

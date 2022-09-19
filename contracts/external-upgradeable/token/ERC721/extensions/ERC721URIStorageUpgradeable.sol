@@ -9,9 +9,7 @@ import "../../../../libraries/StringLib.sol";
 /**
  * @dev ERC721 token with storage based token URI management.
  */
-abstract contract ERC721URIStorageUpgradeable is
-    ERC721Upgradeable
-{
+abstract contract ERC721URIStorageUpgradeable is ERC721Upgradeable {
     using StringLib for uint256;
 
     string internal _baseTokenURI;
