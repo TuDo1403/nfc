@@ -3,6 +3,7 @@
 
 pragma solidity ^0.8.2;
 
+//import "../../utils/AddressUpgradeable.sol";
 error Initializable__Initializing();
 error Initializable__NotInitializing();
 error Initializable__AlreadyInitialized();
@@ -61,7 +62,7 @@ abstract contract Initializable {
      * @dev Indicates that the contract has been initialized.
      * @custom:oz-retyped-from bool
      */
-    uint256 private _initialized = 1;
+    uint256 private _initialized;
 
     /**
      * @dev Indicates that the contract is in the process of being initialized.
@@ -78,7 +79,7 @@ abstract contract Initializable {
      * `onlyInitializing` functions can be used to initialize parent contracts. Equivalent to `reinitializer(1)`.
      */
     modifier initializer() {
-        bool isTopLevelCall = _initializing != 1;
+        bool isTopLevelCall = _initializing != 2;
         uint256 initialized = _initialized;
         if (
             !((isTopLevelCall && initialized == 0) ||
