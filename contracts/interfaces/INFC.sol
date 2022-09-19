@@ -13,4 +13,10 @@ interface INFC {
         uint256 takerPercents;
         bytes32[] takers;
     }
+
+    event Deposited(
+        uint256 indexed tokenId,
+        address indexed from,
+        uint256 indexed priceFee
+    );
 }

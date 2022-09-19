@@ -10,5 +10,6 @@ interface IBusiness {
 
     function updateBusinessAddress(address addr_, bool status_) external;
 
-    function updateBusinessAddresses(address[] calldata addrs_, bool status_) external;
+    function updateBusinessAddresses(address[] calldata addrs_, bool status_)
+        external;
 }
