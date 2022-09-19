@@ -44,10 +44,6 @@ contract RentableNFC is NFC, RentableNFT, IRentableNFC {
         _setLimit(limit_);
     }
 
-    function _setLimit(uint256 limit_) internal {
-        limit = limit_;
-    }
-
     function deposit(
         uint256 tokenId_,
         uint256 deadline_,
@@ -60,22 +56,13 @@ contract RentableNFC is NFC, RentableNFT, IRentableNFC {
         _setUser(tokenId_, sender);
     }
 
-    function setLimit(uint256 limit_) external onlyRole(DEFAULT_ADMIN_ROLE) {
+    function setLimit(uint256 limit_)
+        external
+        override
+        onlyRole(DEFAULT_ADMIN_ROLE)
+    {
+        emit LimitSet(limit, limit_);
         _setLimit(limit_);
-    }
-
-    function _setUser(uint256 tokenId_, address user_) internal {
-        UserInfo memory userInfo = _users[tokenId_];
-        if (userInfo.expires > limit) revert RentableNFC__LimitExceeded();
-        unchecked {
-            emit UserUpdated(
-                tokenId_,
-                userInfo.user = user_,
-                ++userInfo.expires
-            );
-        }
-
-        _users[tokenId_] = userInfo;
     }
 
     function setUser(
@@ -125,6 +112,24 @@ contract RentableNFC is NFC, RentableNFT, IRentableNFC {
         returns (bool)
     {
         return super.supportsInterface(interfaceId_);
+    }
+
+    function _setUser(uint256 tokenId_, address user_) internal {
+        UserInfo memory userInfo = _users[tokenId_];
+        if (userInfo.expires > limit) revert RentableNFC__LimitExceeded();
+        unchecked {
+            emit UserUpdated(
+                tokenId_,
+                userInfo.user = user_,
+                ++userInfo.expires
+            );
+        }
+
+        _users[tokenId_] = userInfo;
+    }
+
+    function _setLimit(uint256 limit_) internal {
+        limit = limit_;
     }
 
     function _beforeTokenTransfer(

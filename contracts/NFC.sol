@@ -15,7 +15,6 @@ import "@openzeppelin/contracts/utils/math/Math.sol";
 import "./interfaces/INFC.sol";
 import "./interfaces/ITreasury.sol";
 import "./interfaces/IBusiness.sol";
-import "./external/token/ERC20/extensions/draft-IERC20Permit.sol";
 
 import "./libraries/StringLib.sol";
 
@@ -83,13 +82,17 @@ contract NFC is
         uint256 tokenId_,
         uint256 deadline_,
         bytes calldata signature_
-    ) external payable virtual nonReentrant whenNotPaused {
+    ) external payable virtual override nonReentrant whenNotPaused {
         address sender = _msgSender();
         _onlyEOA(sender);
         _deposit(sender, tokenId_, deadline_, signature_);
     }
 
-    function mint(address to_, uint256 type_) external onlyRole(MINTER_ROLE) {
+    function mint(address to_, uint256 type_)
+        external
+        override
+        onlyRole(MINTER_ROLE)
+    {
         uint256 id;
         unchecked {
             id = (++_tokenIdTracker << 8) | (type_ & ~uint8(0));
@@ -103,7 +106,7 @@ contract NFC is
         uint256 price_,
         address[] calldata takers_,
         uint256[] calldata takerPercents_
-    ) external onlyRole(DEFAULT_ADMIN_ROLE) {
+    ) external override onlyRole(DEFAULT_ADMIN_ROLE) {
         uint256 nTaker;
         unchecked {
             nTaker = takerPercents_.length % 32;
@@ -140,6 +143,7 @@ contract NFC is
     function royaltyInfoOf(uint256 type_)
         public
         view
+        override
         returns (
             address token,
             uint256 price,
@@ -167,7 +171,7 @@ contract NFC is
         }
     }
 
-    function typeOf(uint256 tokenId_) public view returns (uint256) {
+    function typeOf(uint256 tokenId_) public view override returns (uint256) {
         ownerOf(tokenId_);
         return tokenId_ & ~uint8(0);
     }
