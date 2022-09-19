@@ -5,12 +5,10 @@ import "./external/access/Ownable.sol";
 
 import "./interfaces/IBusiness.sol";
 
-// import "./libraries/AddressLib.sol";
 import "./external/utils/structs/BitMaps.sol";
 
 contract Business is Ownable, IBusiness {
     using BitMaps for BitMaps.BitMap;
-    // using AddressLib for address;
 
     ///@dev value is equal to keccak256("Business_v1")
     bytes32 public constant VERSION =
