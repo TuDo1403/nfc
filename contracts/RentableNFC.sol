@@ -8,11 +8,8 @@ import "./internal/RentableNFT.sol";
 import "./interfaces/IBusiness.sol";
 import "./interfaces/IRentableNFC.sol";
 
-import "./external/utils/structs/BitMaps.sol";
-
 contract RentableNFC is NFC, RentableNFT, IRentableNFC {
     using SafeCast for uint256;
-    using BitMaps for BitMaps.BitMap;
 
     ///@dev value is equal to keccak256("Permit(address user,uint256 deadline,uint256 nonce)")
     bytes32 private constant _PERMIT_TYPE_HASH =
@@ -44,27 +41,52 @@ contract RentableNFC is NFC, RentableNFT, IRentableNFC {
             0x94853ebc602a26ed326beee3ed781c1719447aa3075a7acd18a2640e416a1bb6
         )
     {
+        _setLimit(limit_);
+    }
+
+    function _setLimit(uint256 limit_) internal {
         limit = limit_;
+    }
+
+    function deposit(
+        uint256 tokenId_,
+        uint256 deadline_,
+        bytes calldata signature_
+    ) external payable override nonReentrant whenNotPaused {
+        address sender = _msgSender();
+        _onlyEOA(sender);
+        _deposit(sender, tokenId_, deadline_, signature_);
+
+        _setUser(tokenId_, sender);
+    }
+
+    function setLimit(uint256 limit_) external onlyRole(DEFAULT_ADMIN_ROLE) {
+        _setLimit(limit_);
+    }
+
+    function _setUser(uint256 tokenId_, address user_) internal {
+        UserInfo memory userInfo = _users[tokenId_];
+        if (userInfo.expires > limit) revert RentableNFC__LimitExceeded();
+        unchecked {
+            emit UserUpdated(
+                tokenId_,
+                userInfo.user = user_,
+                ++userInfo.expires
+            );
+        }
+
+        _users[tokenId_] = userInfo;
     }
 
     function setUser(
         uint256 tokenId,
         address user,
         uint256 expires
-    ) external override {
-        _requireNotPaused();
+    ) external override whenNotPaused {
+        expires = 0;
         if (!_isApprovedOrOwner(_msgSender(), tokenId))
             revert RentableNFC__Unauthorized();
-
-        UserInfo memory userInfo = _users[tokenId];
-
-        unchecked {
-            if (userInfo.expires != expires || expires > limit)
-                revert RentableNFC__LimitExceeded();
-            emit UserUpdated(tokenId, userInfo.user = user, ++userInfo.expires);
-        }
-
-        _users[tokenId] = userInfo;
+        _setUser(tokenId, user);
     }
 
     function setUser(
@@ -73,8 +95,7 @@ contract RentableNFC is NFC, RentableNFT, IRentableNFC {
         uint8 v,
         bytes32 r,
         bytes32 s
-    ) external override {
-        _requireNotPaused();
+    ) external override whenNotPaused {
         if (block.timestamp > deadline_) revert RentableNFC__Expired();
 
         address sender = _msgSender();
@@ -94,17 +115,7 @@ contract RentableNFC is NFC, RentableNFT, IRentableNFC {
             s
         );
 
-        UserInfo memory userInfo = _users[tokenId_];
-        if (userInfo.expires > limit) revert RentableNFC__LimitExceeded();
-        unchecked {
-            emit UserUpdated(
-                tokenId_,
-                userInfo.user = sender,
-                ++userInfo.expires
-            );
-        }
-
-        _users[tokenId_] = userInfo;
+        _setUser(tokenId_, sender);
     }
 
     function supportsInterface(bytes4 interfaceId_)
