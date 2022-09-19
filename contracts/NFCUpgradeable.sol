@@ -32,6 +32,10 @@ contract NFCUpgradeable is
     using AddressLib for uint256;
     using AddressLib for address;
 
+    ///@dev value is equal to keccak256("UPGRADER_ROLE")
+    bytes32 public constant UPGRADER_ROLE =
+        0x189ab7a9244df0848122154315af71fe140f3db0fe014031783b0946b8c9d2e3;
+
     uint256 public decimals;
     bytes32 public version;
     bytes32 private _business;
@@ -75,8 +79,11 @@ contract NFCUpgradeable is
         IBusinessUpgradeable business_,
         bytes32 version_
     ) internal onlyInitializing {
+        __ReentrancyGuard_init();
         __EIP712_init(name_, "1");
         __ERC721PresetMinterPauserAutoId_init(name_, symbol_, baseURI_);
+
+        _grantRole(UPGRADER_ROLE, _msgSender());
 
         _defaultFeeTokenInfo =
             (feeToken_.fillFirst96Bits() << 96) |
@@ -307,7 +314,7 @@ contract NFCUpgradeable is
         internal
         virtual
         override
-        onlyRole(DEFAULT_ADMIN_ROLE)
+        onlyRole(UPGRADER_ROLE)
     {}
 
     /**

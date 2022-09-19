@@ -31,6 +31,9 @@ contract TreasuryUpgradeable is
     ///@dev value is equal to keccak256("TreasuryUpgradeable_v1")
     bytes32 public constant VERSION =
         0x1e5497e76d6950fcb48f078aa81db1fbcc89f040fd2a68ea9bd20b6f4526ce3d;
+    ///@dev value is equal to keccak256("UPGRADER_ROLE")
+    bytes32 public constant UPGRADER_ROLE =
+        0x189ab7a9244df0848122154315af71fe140f3db0fe014031783b0946b8c9d2e3;
     ///@dev value is equal to keccak256("PAUSER_ROLE")
     bytes32 public constant PAUSER_ROLE =
         0x65d7a28e3265b37a6474929f336521b332c1681b933f6cb9f3376673440d862a;
@@ -50,6 +53,7 @@ contract TreasuryUpgradeable is
         __updateVerifier(verifier_);
         address sender = _msgSender();
         _grantRole(PAUSER_ROLE, sender);
+        _grantRole(UPGRADER_ROLE, sender);
         _grantRole(TREASURER_ROLE, sender);
         _grantRole(VERIFIER_ROLE, sender);
         _grantRole(VERIFIER_ROLE, verifier_);
@@ -157,7 +161,7 @@ contract TreasuryUpgradeable is
         internal
         virtual
         override
-        onlyRole(DEFAULT_ADMIN_ROLE)
+        onlyRole(UPGRADER_ROLE)
     {}
 
     /**
