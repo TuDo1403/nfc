@@ -86,6 +86,7 @@ contract NFC is
     ) external payable virtual override nonReentrant whenNotPaused {
         address sender = _msgSender();
         _onlyEOA(sender);
+        _checkLock(sender);
         _deposit(sender, tokenId_, deadline_, signature_);
     }
 

@@ -76,7 +76,6 @@ contract NFCUpgradeable is
         bytes32 version_
     ) internal onlyInitializing {
         __EIP712_init(name_, "1");
-        __UUPSUpgradeable_init();
         __ERC721PresetMinterPauserAutoId_init(name_, symbol_, baseURI_);
 
         _defaultFeeTokenInfo =
@@ -110,7 +109,9 @@ contract NFCUpgradeable is
         uint256 deadline_,
         bytes calldata signature_
     ) external payable virtual override nonReentrant whenNotPaused {
-        _deposit(_msgSender(), tokenId_, deadline_, signature_);
+        address sender = _msgSender();
+        _checkLock(sender);
+        _deposit(sender, tokenId_, deadline_, signature_);
     }
 
     function mint(address to_, uint256 type_)

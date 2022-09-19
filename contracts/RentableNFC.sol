@@ -51,6 +51,7 @@ contract RentableNFC is NFC, RentableNFT, IRentableNFC {
     ) external payable override nonReentrant whenNotPaused {
         address sender = _msgSender();
         _onlyEOA(sender);
+        _checkLock(sender);
         _deposit(sender, tokenId_, deadline_, signature_);
 
         _setUser(tokenId_, sender);
@@ -70,6 +71,7 @@ contract RentableNFC is NFC, RentableNFT, IRentableNFC {
         address user,
         uint256 expires
     ) external override whenNotPaused {
+        _checkLock(user);
         expires = 0;
         if (!_isApprovedOrOwner(_msgSender(), tokenId))
             revert RentableNFC__Unauthorized();
@@ -86,6 +88,8 @@ contract RentableNFC is NFC, RentableNFT, IRentableNFC {
         if (block.timestamp > deadline_) revert RentableNFC__Expired();
 
         address sender = _msgSender();
+        _checkLock(sender);
+        _onlyEOA(sender);
         _verify(
             sender,
             ownerOf(tokenId_),

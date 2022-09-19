@@ -53,6 +53,7 @@ contract RentableNFCUpgradeable is
         bytes calldata signature_
     ) external payable override nonReentrant whenNotPaused {
         address sender = _msgSender();
+        _checkLock(sender);
         _deposit(sender, tokenId_, deadline_, signature_);
 
         _setUser(tokenId_, sender);
@@ -72,6 +73,7 @@ contract RentableNFCUpgradeable is
         address user,
         uint256 expires
     ) external override whenNotPaused {
+        _checkLock(user);
         expires = 0;
         if (!_isApprovedOrOwner(_msgSender(), tokenId))
             revert RentableNFC__Unauthorized();
@@ -88,6 +90,7 @@ contract RentableNFCUpgradeable is
         if (block.timestamp > deadline_) revert RentableNFC__Expired();
 
         address sender = _msgSender();
+        _checkLock(sender);
         _verify(
             sender,
             ownerOf(tokenId_),

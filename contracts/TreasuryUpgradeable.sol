@@ -47,9 +47,7 @@ contract TreasuryUpgradeable is
 
     function init(address verifier_) external initializer {
         __EIP712_init(type(TreasuryUpgradeable).name, "1");
-
         __updateVerifier(verifier_);
-
         address sender = _msgSender();
         _grantRole(PAUSER_ROLE, sender);
         _grantRole(TREASURER_ROLE, sender);

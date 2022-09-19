@@ -9,7 +9,11 @@ import "./interfaces-upgradeable/IBusinessUpgradeable.sol";
 import "./libraries/AddressLib.sol";
 import "./external-upgradeable/utils/structs/BitMapsUpgradeable.sol";
 
-contract BusinessUpgradeable is OwnableUpgradeable, IBusinessUpgradeable, UUPSUpgradeable {
+contract BusinessUpgradeable is
+    OwnableUpgradeable,
+    IBusinessUpgradeable,
+    UUPSUpgradeable
+{
     using BitMapsUpgradeable for BitMapsUpgradeable.BitMap;
     using AddressLib for address;
 
@@ -19,10 +23,7 @@ contract BusinessUpgradeable is OwnableUpgradeable, IBusinessUpgradeable, UUPSUp
 
     BitMapsUpgradeable.BitMap private _businesses;
 
-    function init() external initializer {
-        __Ownable_init();
-        __UUPSUpgradeable_init();
-    }
+    function init() external initializer {}
 
     function isBusiness(address account_)
         external
