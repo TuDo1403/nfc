@@ -12,10 +12,11 @@
     "@nomicfoundation/hardhat-chai-matchers": "^1.0.2",
     "@nomicfoundation/hardhat-network-helpers": "^1.0.3",
     "@nomicfoundation/hardhat-toolbox": "^1.0.2",
-    "@nomiclabs/hardhat-ethers": "^2.1.0",
+    "@nomiclabs/hardhat-ethers": "^2.1.1",
     "@nomiclabs/hardhat-etherscan": "^3.1.0",
     "@openzeppelin/contracts": "^4.7.3",
     "@openzeppelin/contracts-upgradeable": "^4.7.3",
+    "@openzeppelin/hardhat-upgrades": "^1.20.0",
     "@trivago/prettier-plugin-sort-imports": "^3.3.0",
     "@typechain/ethers-v5": "^10.1.0",
     "@typechain/hardhat": "^6.1.2",
@@ -29,10 +30,10 @@
     "commitizen": "^4.2.5",
     "cross-env": "^7.0.3",
     "cz-conventional-changelog": "^3.3.0",
-    "dotenv": "^16.0.1",
+    "dotenv": "^16.0.2",
     "eslint": "^8.21.0",
     "eslint-config-prettier": "^8.5.0",
-    "ethers": "^5.6.9",
+    "ethers": "^5.7.1",
     "fs-extra": "^10.1.0",
     "hardhat": "^2.10.1",
     "hardhat-contract-sizer": "^2.6.1",
@@ -76,10 +77,8 @@
     "commit": "git-cz",
     "compile": "cross-env TS_NODE_TRANSPILE_ONLY=true hardhat compile",
     "coverage": "hardhat coverage --solcoverjs ./.solcover.js --temp artifacts --testfiles \"test/**/*.ts\" && yarn typechain",
-    "deploy-avalanche": "hardhat --network avalanche",
-    "deploy-fuji": "hardhat --network fuji",
-    "verify-avalanche": "hardhat verify --network avalanche",
-    "verify-fuji": "hardhat verify --network fuji",
+    "deploy:bscTest": "npx hardhat run --network bscTest scripts/deploy.ts",
+    "verify:bscTest": "hardhat verify --network bscTest",
     "lint": "yarn lint:sol && yarn lint:ts && yarn prettier:check",
     "lint:ts": "eslint --config ./.eslintrc.yml --ignore-path ./.eslintignore --ext .js,.ts .",
     "postinstall": "husky install && DOTENV_CONFIG_PATH=./.env yarn typechain",
@@ -91,5 +90,8 @@
     "prettier:check": "prettier --check --config ./.prettierrc.yml \"**/*.{js,json,md,sol,ts,yml}\"",
     "test": "hardhat test",
     "typechain": "cross-env TS_NODE_TRANSPILE_ONLY=true hardhat typechain"
+  },
+  "dependencies": {
+    "workspace": "^0.0.1-preview.1"
   }
 }
