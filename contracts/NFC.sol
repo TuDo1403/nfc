@@ -47,7 +47,7 @@ contract NFC is
         string memory baseURI_,
         uint256 decimals_,
         uint256 feeAmount_,
-        address feeToken_,
+        IERC20Permit feeToken_,
         ITreasury treasury_,
         IBusiness business_,
         bytes32 version_
@@ -61,13 +61,13 @@ contract NFC is
         treasury = treasury_;
 
         uint8 _decimals;
+        uint256 uintAddr;
         assembly {
             _decimals := decimals_
+            uintAddr := feeToken_
         }
         decimals = _decimals;
-        _defaultFeeTokenInfo =
-            (feeToken_.fillFirst96Bits() << 96) |
-            feeAmount_.toUint96();
+        _defaultFeeTokenInfo = (uintAddr << 96) | feeAmount_.toUint96();
     }
 
     function withdraw(address to_, uint256 amount_)

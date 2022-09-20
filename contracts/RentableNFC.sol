@@ -23,7 +23,7 @@ contract RentableNFC is NFC, RentableNFT, IRentableNFC {
         string memory baseURI_,
         uint256 limit_,
         uint256 feeAmount_,
-        address feeToken_,
+        IERC20Permit feeToken_,
         ITreasury treasury_,
         IBusiness business_
     )
