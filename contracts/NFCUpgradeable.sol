@@ -14,7 +14,6 @@ import "./external-upgradeable/utils/math/SafeCastUpgradeable.sol";
 
 import "./interfaces-upgradeable/INFCUpgradeable.sol";
 import "./interfaces-upgradeable/ITreasuryUpgradeable.sol";
-import "./interfaces-upgradeable/IBusinessUpgradeable.sol";
 
 import "./libraries/StringLib.sol";
 
@@ -50,6 +49,7 @@ contract NFCUpgradeable is
 
     function updateBusiness(IBusinessUpgradeable business_)
         external
+        override
         onlyRole(OPERATOR_ROLE)
     {
         bytes32 bytes32Addr;
@@ -57,41 +57,6 @@ contract NFCUpgradeable is
             bytes32Addr := business_
         }
         _business = bytes32Addr;
-    }
-
-    function __NFC_init(
-        string calldata name_,
-        string calldata symbol_,
-        string calldata baseURI_,
-        uint256 decimals_,
-        uint256 feeAmount_,
-        IERC20PermitUpgradeable feeToken_,
-        ITreasuryUpgradeable treasury_,
-        IBusinessUpgradeable business_,
-        bytes32 version_
-    ) internal onlyInitializing {
-        __ReentrancyGuard_init();
-        __EIP712_init(name_, "1");
-        __ERC721PresetMinterPauserAutoId_init(name_, symbol_, baseURI_);
-
-        address sender = _msgSender();
-        _grantRole(OPERATOR_ROLE, sender);
-        _grantRole(UPGRADER_ROLE, sender);
-
-        version = version_;
-        decimals = decimals_ & ~uint8(0);
-
-        bytes32 bytes32Treasury;
-        bytes32 bytes32Business;
-        uint256 uintFeeToken;
-        assembly {
-            bytes32Treasury := treasury_
-            bytes32Business := business_
-            uintFeeToken := feeToken_
-        }
-        _treasury = bytes32Treasury;
-        _business = bytes32Business;
-        _defaultFeeTokenInfo = (uintFeeToken << 96) | feeAmount_.toUint96();
     }
 
     function withdraw(address to_, uint256 amount_)
@@ -172,6 +137,7 @@ contract NFCUpgradeable is
         returns (
             address token,
             uint256 price,
+            uint256 nTakers,
             address[] memory takers,
             uint256[] memory takerPercents
         )
@@ -185,7 +151,7 @@ contract NFCUpgradeable is
         price = royaltyInfo.feeData & ~uint96(0);
         token = feeData.fromLast160Bits();
         uint256 _takerPercents = royaltyInfo.takerPercents;
-        uint256 nTakers = _takerPercents & 0xff;
+        nTakers = _takerPercents & 0xff;
         uint256 percentMask = _takerPercents >> 8;
         takerPercents = new uint256[](nTakers);
         for (uint256 i; i < nTakers; ) {
@@ -239,6 +205,41 @@ contract NFCUpgradeable is
         return IBusinessUpgradeable(addr);
     }
 
+    function __NFC_init(
+        string calldata name_,
+        string calldata symbol_,
+        string calldata baseURI_,
+        uint256 decimals_,
+        uint256 feeAmount_,
+        IERC20PermitUpgradeable feeToken_,
+        ITreasuryUpgradeable treasury_,
+        IBusinessUpgradeable business_,
+        bytes32 version_
+    ) internal onlyInitializing {
+        __ReentrancyGuard_init();
+        __EIP712_init(name_, "1");
+        __ERC721PresetMinterPauserAutoId_init(name_, symbol_, baseURI_);
+
+        address sender = _msgSender();
+        _grantRole(OPERATOR_ROLE, sender);
+        _grantRole(UPGRADER_ROLE, sender);
+
+        version = version_;
+        decimals = decimals_ & ~uint8(0);
+
+        bytes32 bytes32Treasury;
+        bytes32 bytes32Business;
+        uint256 uintFeeToken;
+        assembly {
+            bytes32Treasury := treasury_
+            bytes32Business := business_
+            uintFeeToken := feeToken_
+        }
+        _treasury = bytes32Treasury;
+        _business = bytes32Business;
+        _defaultFeeTokenInfo = (uintFeeToken << 96) | feeAmount_.toUint96();
+    }
+
     function _deposit(
         address sender_,
         uint256 tokenId_,
@@ -248,6 +249,7 @@ contract NFCUpgradeable is
         (
             address token,
             uint256 price,
+            uint256 nTakers,
             address[] memory takers,
             uint256[] memory takerPercents
         ) = royaltyInfoOf(typeOf(tokenId_));
@@ -257,7 +259,7 @@ contract NFCUpgradeable is
             IERC20PermitUpgradeable(token).permit(
                 sender_,
                 address(this),
-                price *= 1 << decimals,
+                price *= 10**decimals, // convert to wei
                 deadline_,
                 v,
                 r,
@@ -265,19 +267,19 @@ contract NFCUpgradeable is
             );
         }
         emit Deposited(tokenId_, sender_, price);
-        uint256 length = takerPercents.length;
-        for (uint256 i; i < length; ) {
+        price *= 100; // convert percentage to 1e4
+        for (uint256 i; i < nTakers; ) {
+            _safeTransferFrom(
+                token,
+                sender_,
+                takers[i],
+                price.mulDiv(
+                    takerPercents[i],
+                    1e4,
+                    MathUpgradeable.Rounding.Zero
+                )
+            );
             unchecked {
-                _safeTransferFrom(
-                    token,
-                    sender_,
-                    takers[i],
-                    (price * 100).mulDiv(
-                        takerPercents[i],
-                        1e4,
-                        MathUpgradeable.Rounding.Zero
-                    )
-                );
                 ++i;
             }
         }

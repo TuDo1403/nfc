@@ -44,6 +44,7 @@ interface INFC {
         returns (
             address token,
             uint256 price,
+            uint256 length,
             address[] memory takers,
             uint256[] memory takerPercents
         );

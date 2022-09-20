@@ -149,6 +149,7 @@ contract NFC is
         returns (
             address token,
             uint256 price,
+            uint256 nTakers,
             address[] memory takers,
             uint256[] memory takerPercents
         )
@@ -162,7 +163,7 @@ contract NFC is
         price = royaltyInfo.feeData & ~uint96(0);
         token = feeData.fromLast160Bits();
         uint256 _takerPercents = royaltyInfo.takerPercents;
-        uint256 nTakers = _takerPercents & 0xff;
+        nTakers = _takerPercents & 0xff;
         uint256 percentMask = _takerPercents >> 8;
         takerPercents = new uint256[](nTakers);
         for (uint256 i; i < nTakers; ) {
@@ -209,6 +210,7 @@ contract NFC is
         (
             address token,
             uint256 price,
+            uint256 nTakers,
             address[] memory takers,
             uint256[] memory takerPercents
         ) = royaltyInfoOf(typeOf(tokenId_));
@@ -218,7 +220,7 @@ contract NFC is
             IERC20Permit(token).permit(
                 sender_,
                 address(this),
-                price *= 1 << decimals,
+                price *= 10**decimals, // convert to wei
                 deadline_,
                 v,
                 r,
@@ -226,19 +228,15 @@ contract NFC is
             );
         }
         emit Deposited(tokenId_, sender_, price);
-        uint256 length = takerPercents.length;
-        for (uint256 i; i < length; ) {
+        price *= 100; // convert percentage to 1e4
+        for (uint256 i; i < nTakers; ) {
+            _safeTransferFrom(
+                token,
+                sender_,
+                takers[i],
+                price.mulDiv(takerPercents[i], 1e4, Math.Rounding.Zero)
+            );
             unchecked {
-                _safeTransferFrom(
-                    token,
-                    sender_,
-                    takers[i],
-                    (price * 100).mulDiv(
-                        takerPercents[i],
-                        1e4,
-                        Math.Rounding.Zero
-                    )
-                );
                 ++i;
             }
         }

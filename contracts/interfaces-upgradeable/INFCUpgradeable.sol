@@ -2,6 +2,7 @@
 pragma solidity ^0.8.15;
 
 import "../external-upgradeable/token/ERC20/extensions/draft-IERC20PermitUpgradeable.sol";
+import "./IBusinessUpgradeable.sol";
 
 interface INFCUpgradeable {
     error NFC__Expired();
@@ -21,6 +22,8 @@ interface INFCUpgradeable {
         address indexed from,
         uint256 indexed priceFee
     );
+
+    function updateBusiness(IBusinessUpgradeable business_) external;
 
     function deposit(
         uint256 tokenId_,
@@ -44,6 +47,7 @@ interface INFCUpgradeable {
         returns (
             address token,
             uint256 price,
+            uint256 length,
             address[] memory takers,
             uint256[] memory takerPercents
         );
