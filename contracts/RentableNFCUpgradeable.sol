@@ -62,7 +62,7 @@ contract RentableNFCUpgradeable is
     function setLimit(uint256 limit_)
         external
         override
-        onlyRole(DEFAULT_ADMIN_ROLE)
+        onlyRole(OPERATOR_ROLE)
     {
         emit LimitSet(limit, limit_);
         _setLimit(limit_);

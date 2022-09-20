@@ -36,6 +36,10 @@ contract NFCUpgradeable is
     bytes32 public constant UPGRADER_ROLE =
         0x189ab7a9244df0848122154315af71fe140f3db0fe014031783b0946b8c9d2e3;
 
+    ///@dev value is equal to keccak256("OPERATOR_ROLE")
+    bytes32 public constant OPERATOR_ROLE =
+        0x97667070c54ef182b0f5858b034beac1b6f3089aa2d3188bb1e8929f4fa9b929;
+
     uint256 public decimals;
     bytes32 public version;
     bytes32 private _business;
@@ -44,29 +48,13 @@ contract NFCUpgradeable is
     uint256 private _defaultFeeTokenInfo;
     mapping(uint256 => RoyaltyInfo) private _typeRoyalty;
 
-    // function init(
-    //     string calldata name_,
-    //     string calldata symbol_,
-    //     string calldata baseURI_,
-    //     uint256 decimals_,
-    //     uint256 feeAmount_,
-    //     address feeToken_,
-    //     ITreasuryUpgradeable treasury_,
-    //     IBusinessUpgradeable business_,
-    //     bytes32 version_
-    // ) external virtual initializer {
-    //     __NFC_init(
-    //         name_,
-    //         symbol_,
-    //         baseURI_,
-    //         decimals_,
-    //         feeAmount_,
-    //         feeToken_,
-    //         treasury_,
-    //         business_,
-    //         version_
-    //     );
-    // }
+    function updateBusiness(IBusinessUpgradeable business_) external onlyRole(OPERATOR_ROLE) {
+        bytes32 bytes32Addr;
+        assembly {
+            bytes32Addr := business_
+        }
+        _business = bytes32Addr;
+    }
 
     function __NFC_init(
         string calldata name_,
@@ -83,7 +71,9 @@ contract NFCUpgradeable is
         __EIP712_init(name_, "1");
         __ERC721PresetMinterPauserAutoId_init(name_, symbol_, baseURI_);
 
-        _grantRole(UPGRADER_ROLE, _msgSender());
+        address sender = _msgSender();
+        _grantRole(OPERATOR_ROLE, sender);
+        _grantRole(UPGRADER_ROLE, sender);
 
         _defaultFeeTokenInfo =
             (feeToken_.fillFirst96Bits() << 96) |
@@ -106,7 +96,7 @@ contract NFCUpgradeable is
         external
         virtual
         override
-        onlyRole(DEFAULT_ADMIN_ROLE)
+        onlyRole(OPERATOR_ROLE)
     {
         _safeNativeTransfer(to_, amount_);
     }

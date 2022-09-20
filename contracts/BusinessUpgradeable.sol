@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.15;
 
-import "./external-upgradeable/access/OwnableUpgradeable.sol";
+import "./external-upgradeable/access/AccessControlUpgradeable.sol";
 import "./external-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 
 import "./interfaces-upgradeable/IBusinessUpgradeable.sol";
@@ -9,9 +9,9 @@ import "./interfaces-upgradeable/IBusinessUpgradeable.sol";
 import "./external-upgradeable/utils/structs/BitMapsUpgradeable.sol";
 
 contract BusinessUpgradeable is
-    OwnableUpgradeable,
+    UUPSUpgradeable,
     IBusinessUpgradeable,
-    UUPSUpgradeable
+    AccessControlUpgradeable
 {
     using BitMapsUpgradeable for BitMapsUpgradeable.BitMap;
 
@@ -19,10 +19,21 @@ contract BusinessUpgradeable is
     bytes32 public constant VERSION =
         0xea321455eb5f54c86f9ff7d23275c13e3657c147111c7cdbfbcaa9fc7f4e8c3d;
 
+    ///@dev value is equal to keccak256("OPERATOR_ROLE")
+    bytes32 public constant OPERATOR_ROLE =
+        0x97667070c54ef182b0f5858b034beac1b6f3089aa2d3188bb1e8929f4fa9b929;
+
+    ///@dev value is equal to keccak256("UPGRADER_ROLE")
+    bytes32 public constant UPGRADER_ROLE =
+        0x189ab7a9244df0848122154315af71fe140f3db0fe014031783b0946b8c9d2e3;
+
     BitMapsUpgradeable.BitMap private _businesses;
 
     function init() external initializer {
-        __Ownable_init();
+        address sender = _msgSender();
+        _grantRole(OPERATOR_ROLE, sender);
+        _grantRole(UPGRADER_ROLE, sender);
+        _grantRole(DEFAULT_ADMIN_ROLE, sender);
     }
 
     function isBusiness(address account_)
@@ -41,7 +52,7 @@ contract BusinessUpgradeable is
     function updateBusinessAddress(address addr_, bool status_)
         external
         override
-        onlyOwner
+        onlyRole(OPERATOR_ROLE)
     {
         uint256 uintAddr;
         assembly {
@@ -53,7 +64,7 @@ contract BusinessUpgradeable is
     function updateBusinessAddresses(address[] calldata addrs_, bool status_)
         external
         override
-        onlyOwner
+        onlyRole(OPERATOR_ROLE)
     {
         address[] memory addrs = addrs_;
         uint256 length = addrs.length;
@@ -74,7 +85,7 @@ contract BusinessUpgradeable is
         internal
         virtual
         override
-        onlyOwner
+        onlyRole(UPGRADER_ROLE)
     {}
 
     /**
