@@ -2,7 +2,6 @@
 pragma solidity ^0.8.15;
 
 import "./external/security/ReentrancyGuard.sol";
-import "./external/token/ERC721/extensions/ERC721Royalty.sol";
 import "./external/token/ERC721/presets/ERC721PresetMinterPauserAutoId.sol";
 
 import "./internal/Lockable.sol";
@@ -10,12 +9,10 @@ import "./internal/Withdrawable.sol";
 
 import "./utils/NoProxy.sol";
 
+import "./external/utils/math/Math.sol";
 import "./external/utils/math/SafeCast.sol";
-import "@openzeppelin/contracts/utils/math/Math.sol";
 
 import "./interfaces/INFC.sol";
-import "./interfaces/ITreasury.sol";
-import "./interfaces/IBusiness.sol";
 
 import "./libraries/StringLib.sol";
 
@@ -35,10 +32,7 @@ contract NFC is
 
     uint8 public immutable decimals;
     bytes32 public immutable version;
-    IBusiness public immutable business;
-    ITreasury public immutable treasury;
 
-    uint256 private _defaultFeeTokenInfo;
     mapping(uint256 => RoyaltyInfo) private _typeRoyalty;
 
     constructor(
@@ -46,10 +40,6 @@ contract NFC is
         string memory symbol_,
         string memory baseURI_,
         uint256 decimals_,
-        uint256 feeAmount_,
-        IERC20Permit feeToken_,
-        ITreasury treasury_,
-        IBusiness business_,
         bytes32 version_
     )
         payable
@@ -57,17 +47,12 @@ contract NFC is
         ERC721PresetMinterPauserAutoId(name_, symbol_, baseURI_)
     {
         version = version_;
-        business = business_;
-        treasury = treasury_;
 
         uint8 _decimals;
-        uint256 uintAddr;
         assembly {
             _decimals := decimals_
-            uintAddr := feeToken_
         }
         decimals = _decimals;
-        _defaultFeeTokenInfo = (uintAddr << 96) | feeAmount_.toUint96();
     }
 
     function withdraw(address to_, uint256 amount_)
@@ -90,16 +75,12 @@ contract NFC is
         _deposit(sender, tokenId_, deadline_, signature_);
     }
 
-    function mint(address to_, uint256 type_)
-        external
-        override
-        onlyRole(MINTER_ROLE)
-    {
+    function mint(uint256 type_) external override onlyRole(MINTER_ROLE) {
         uint256 id;
         unchecked {
             id = (++_tokenIdTracker << 8) | (type_ & ~uint8(0));
         }
-        _mint(to_, id);
+        _mint(address(this), id);
     }
 
     function setTypeFee(
@@ -240,26 +221,5 @@ contract NFC is
                 ++i;
             }
         }
-    }
-
-    function _beforeTokenTransfer(
-        address from_,
-        address to_,
-        uint256 tokenId_
-    ) internal virtual override {
-        address sender = _msgSender();
-        _onlyUnlocked(sender, from_, to_);
-        if (from_ != address(0) && to_ != address(0)) {
-            uint256 feeTokenInfo = _defaultFeeTokenInfo;
-            if (!business.isBusiness(sender))
-                _safeTransferFrom(
-                    feeTokenInfo.fromLast160Bits(),
-                    sender,
-                    address(treasury),
-                    feeTokenInfo & ~uint96(0)
-                );
-        }
-
-        super._beforeTokenTransfer(from_, to_, tokenId_);
     }
 }

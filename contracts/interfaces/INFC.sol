@@ -28,8 +28,6 @@ interface INFC {
         bytes calldata signature_
     ) external payable;
 
-    function mint(address to_, uint256 type_) external;
-
     function setTypeFee(
         IERC20Permit feeToken_,
         uint256 type_,
@@ -48,6 +46,8 @@ interface INFC {
             address[] memory takers,
             uint256[] memory takerPercents
         );
+
+    function mint(uint256 type_) external;
 
     function typeOf(uint256 tokenId_) external view returns (uint256);
 }

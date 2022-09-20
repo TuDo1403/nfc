@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.15;
 
-import "../external-upgradeable/token/ERC20/extensions/draft-IERC20PermitUpgradeable.sol";
+import "../external-upgradeable/token/ERC20/IERC20Upgradeable.sol";
 import "./IBusinessUpgradeable.sol";
 
 interface INFCUpgradeable {
@@ -23,18 +23,16 @@ interface INFCUpgradeable {
         uint256 indexed priceFee
     );
 
-    function updateBusiness(IBusinessUpgradeable business_) external;
-
     function deposit(
         uint256 tokenId_,
         uint256 deadline_,
         bytes calldata signature_
     ) external payable;
 
-    function mint(address to_, uint256 type_) external;
+    function mint(uint256 type_) external;
 
     function setTypeFee(
-        IERC20PermitUpgradeable feeToken_,
+        IERC20Upgradeable feeToken_,
         uint256 type_,
         uint256 price_,
         address[] calldata takers_,

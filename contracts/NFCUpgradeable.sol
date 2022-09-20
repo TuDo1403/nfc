@@ -3,7 +3,6 @@ pragma solidity ^0.8.15;
 
 import "./external-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import "./external-upgradeable/security/ReentrancyGuardUpgradeable.sol";
-import "./external-upgradeable/token/ERC721/extensions/ERC721RoyaltyUpgradeable.sol";
 import "./external-upgradeable/token/ERC721/presets/ERC721PresetMinterPauserAutoIdUpgradeable.sol";
 
 import "./internal-upgradeable/LockableUpgradeable.sol";
@@ -13,7 +12,7 @@ import "./external-upgradeable/utils/math/MathUpgradeable.sol";
 import "./external-upgradeable/utils/math/SafeCastUpgradeable.sol";
 
 import "./interfaces-upgradeable/INFCUpgradeable.sol";
-import "./interfaces-upgradeable/ITreasuryUpgradeable.sol";
+import "./external-upgradeable/token/ERC20/extensions/draft-IERC20PermitUpgradeable.sol";
 
 import "./libraries/StringLib.sol";
 
@@ -47,18 +46,6 @@ contract NFCUpgradeable is
     uint256 private _defaultFeeTokenInfo;
     mapping(uint256 => RoyaltyInfo) private _typeRoyalty;
 
-    function updateBusiness(IBusinessUpgradeable business_)
-        external
-        override
-        onlyRole(OPERATOR_ROLE)
-    {
-        bytes32 bytes32Addr;
-        assembly {
-            bytes32Addr := business_
-        }
-        _business = bytes32Addr;
-    }
-
     function withdraw(address to_, uint256 amount_)
         external
         virtual
@@ -78,20 +65,16 @@ contract NFCUpgradeable is
         _deposit(sender, tokenId_, deadline_, signature_);
     }
 
-    function mint(address to_, uint256 type_)
-        external
-        override
-        onlyRole(MINTER_ROLE)
-    {
+    function mint(uint256 type_) external override onlyRole(MINTER_ROLE) {
         uint256 id;
         unchecked {
             id = (++_tokenIdTracker << 8) | (type_ & ~uint8(0));
         }
-        _mint(to_, id);
+        _mint(address(this), id);
     }
 
     function setTypeFee(
-        IERC20PermitUpgradeable feeToken_,
+        IERC20Upgradeable feeToken_,
         uint256 type_,
         uint256 price_,
         address[] calldata takers_,
@@ -189,31 +172,11 @@ contract NFCUpgradeable is
             super.supportsInterface(interfaceId_);
     }
 
-    function treasury() public view returns (ITreasuryUpgradeable) {
-        address addr;
-        assembly {
-            addr := sload(_treasury.slot)
-        }
-        return ITreasuryUpgradeable(addr);
-    }
-
-    function business() public view returns (IBusinessUpgradeable) {
-        address addr;
-        assembly {
-            addr := sload(_business.slot)
-        }
-        return IBusinessUpgradeable(addr);
-    }
-
     function __NFC_init(
         string calldata name_,
         string calldata symbol_,
         string calldata baseURI_,
         uint256 decimals_,
-        uint256 feeAmount_,
-        IERC20PermitUpgradeable feeToken_,
-        ITreasuryUpgradeable treasury_,
-        IBusinessUpgradeable business_,
         bytes32 version_
     ) internal onlyInitializing {
         __ReentrancyGuard_init();
@@ -226,18 +189,6 @@ contract NFCUpgradeable is
 
         version = version_;
         decimals = decimals_ & ~uint8(0);
-
-        bytes32 bytes32Treasury;
-        bytes32 bytes32Business;
-        uint256 uintFeeToken;
-        assembly {
-            bytes32Treasury := treasury_
-            bytes32Business := business_
-            uintFeeToken := feeToken_
-        }
-        _treasury = bytes32Treasury;
-        _business = bytes32Business;
-        _defaultFeeTokenInfo = (uintFeeToken << 96) | feeAmount_.toUint96();
     }
 
     function _deposit(
@@ -283,27 +234,6 @@ contract NFCUpgradeable is
                 ++i;
             }
         }
-    }
-
-    function _beforeTokenTransfer(
-        address from_,
-        address to_,
-        uint256 tokenId_
-    ) internal virtual override {
-        address sender = _msgSender();
-        _onlyUnlocked(sender, from_, to_);
-        if (from_ != address(0) && to_ != address(0)) {
-            uint256 feeTokenInfo = _defaultFeeTokenInfo;
-            if (!business().isBusiness(sender))
-                _safeTransferFrom(
-                    feeTokenInfo.fromLast160Bits(),
-                    sender,
-                    address(treasury()),
-                    feeTokenInfo & ~uint96(0)
-                );
-        }
-
-        super._beforeTokenTransfer(from_, to_, tokenId_);
     }
 
     function _authorizeUpgrade(address newImplementation)

@@ -5,7 +5,6 @@ import "./NFCUpgradeable.sol";
 
 import "./internal-upgradeable/RentableNFTUpgradeable.sol";
 
-import "./interfaces-upgradeable/IBusinessUpgradeable.sol";
 import "./interfaces-upgradeable/IRentableNFCUpgradeable.sol";
 
 contract RentableNFCUpgradeable is
@@ -15,31 +14,19 @@ contract RentableNFCUpgradeable is
 {
     using SafeCastUpgradeable for uint256;
 
-    ///@dev value is equal to keccak256("Permit(uint256 tokenId,address user,uint256 deadline,uint256 nonce)")
-    bytes32 private constant _PERMIT_TYPE_HASH =
-        0xc3c6d1ca0b709df6823691bfba44f3fa8fb23d2b1e1f205b3f4fade39169759b;
-
     uint256 public limit;
 
     function init(
         string calldata name_,
         string calldata symbol_,
         string calldata baseURI_,
-        uint256 limit_,
-        uint256 feeAmount_,
-        IERC20PermitUpgradeable feeToken_,
-        ITreasuryUpgradeable treasury_,
-        IBusinessUpgradeable business_
+        uint256 limit_
     ) external initializer {
         __NFC_init(
             name_,
             symbol_,
             baseURI_,
             18,
-            feeAmount_,
-            feeToken_,
-            treasury_,
-            business_,
             ///@dev value is equal to keccak256("RentableNFCUpgradeable")
             0x8f0d2d8abbd7c54281bae66528ef94d45e2883ff8bcc0f44d38a570078d4694d
         );
@@ -80,37 +67,6 @@ contract RentableNFCUpgradeable is
         _setUser(tokenId, user);
     }
 
-    function setUser(
-        uint256 tokenId_,
-        uint256 deadline_,
-        uint8 v,
-        bytes32 r,
-        bytes32 s
-    ) external override whenNotPaused {
-        if (block.timestamp > deadline_) revert RentableNFC__Expired();
-
-        address sender = _msgSender();
-        address owner = ownerOf(tokenId_);
-        _checkLock(sender);
-        _verify(
-            sender,
-            owner,
-            keccak256(
-                abi.encode(
-                    _PERMIT_TYPE_HASH,
-                    sender,
-                    deadline_,
-                    _useNonce(owner)
-                )
-            ),
-            v,
-            r,
-            s
-        );
-
-        _setUser(tokenId_, sender);
-    }
-
     function supportsInterface(bytes4 interfaceId_)
         public
         view
@@ -142,7 +98,13 @@ contract RentableNFCUpgradeable is
         address from_,
         address to_,
         uint256 tokenId_
-    ) internal override(NFCUpgradeable, RentableNFTUpgradeable) {
+    )
+        internal
+        override(
+            ERC721PresetMinterPauserAutoIdUpgradeable,
+            RentableNFTUpgradeable
+        )
+    {
         super._beforeTokenTransfer(from_, to_, tokenId_);
     }
 

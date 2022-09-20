@@ -28,7 +28,7 @@ contract SigUtil {
         paymentToken = paymentToken_;
     }
 
-    function setUserSigature(
+    function setUserHash(
         uint256 tokenId_,
         address user,
         uint256 deadline
@@ -52,7 +52,7 @@ contract SigUtil {
             );
     }
 
-    function permitSignature(
+    function permitHash(
         address owner,
         address spender,
         uint256 value,
