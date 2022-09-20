@@ -14,7 +14,12 @@ abstract contract ERC721Permit is ERC721, IERC721Permit, Signable {
     /// @dev Gets the current nonce for a token ID and then increments it, returning the original value
 
     /// @inheritdoc IERC721Permit
-    function DOMAIN_SEPARATOR() public view override returns (bytes32) {
+    function DOMAIN_SEPARATOR()
+        public
+        view
+        override(IERC721Permit, Signable)
+        returns (bytes32)
+    {
         return _domainSeparatorV4();
     }
 

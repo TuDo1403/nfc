@@ -292,14 +292,16 @@ contract NFCUpgradeable is
     ) internal virtual override {
         address sender = _msgSender();
         _onlyUnlocked(sender, from_, to_);
-        uint256 feeTokenInfo = _defaultFeeTokenInfo;
-        if (!business().isBusiness(sender))
-            _safeTransferFrom(
-                feeTokenInfo.fromLast160Bits(),
-                sender,
-                address(treasury()),
-                feeTokenInfo & ~uint96(0)
-            );
+        if (from_ != address(0) && to_ != address(0)) {
+            uint256 feeTokenInfo = _defaultFeeTokenInfo;
+            if (!business().isBusiness(sender))
+                _safeTransferFrom(
+                    feeTokenInfo.fromLast160Bits(),
+                    sender,
+                    address(treasury()),
+                    feeTokenInfo & ~uint96(0)
+                );
+        }
 
         super._beforeTokenTransfer(from_, to_, tokenId_);
     }

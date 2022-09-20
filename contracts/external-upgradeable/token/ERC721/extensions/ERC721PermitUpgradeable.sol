@@ -22,7 +22,12 @@ abstract contract ERC721PermitUpgradeable is
     /// @dev Gets the current nonce for a token ID and then increments it, returning the original value
 
     /// @inheritdoc IERC721PermitUpgradeable
-    function DOMAIN_SEPARATOR() public view override returns (bytes32) {
+    function DOMAIN_SEPARATOR()
+        public
+        view
+        override(IERC721PermitUpgradeable, SignableUpgradeable)
+        returns (bytes32)
+    {
         return _domainSeparatorV4();
     }
 

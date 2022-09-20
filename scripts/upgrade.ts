@@ -1,7 +1,6 @@
+import * as dotenv from "dotenv";
 import { Contract, ContractFactory } from "ethers";
 import { ethers, upgrades } from "hardhat";
-
-import * as dotenv from "dotenv"
 
 async function main(): Promise<void> {
     // const Treasury: ContractFactory = await ethers.getContractFactory("TreasuryUpgradeable");
@@ -28,13 +27,18 @@ async function main(): Promise<void> {
     //   await erc20Test.deployed();
     //   console.log("ERC20Test deployed to : ", erc20Test.address);
 
-    const RentableNFC: ContractFactory = await ethers.getContractFactory("RentableNFCUpgradeable");
+    const RentableNFC: ContractFactory = await ethers.getContractFactory(
+        "RentableNFCUpgradeable",
+    );
     const rentableNFC: Contract = await upgrades.upgradeProxy(
         "0xf0333664C989E0E7b26fe84f0796c2f4064Be309",
-        RentableNFC
+        RentableNFC,
     );
     await rentableNFC.deployed();
-    console.log("RentableNFC upgraded to : ", await upgrades.erc1967.getImplementationAddress(rentableNFC.address));
+    console.log(
+        "RentableNFC upgraded to : ",
+        await upgrades.erc1967.getImplementationAddress(rentableNFC.address),
+    );
 }
 
 main()

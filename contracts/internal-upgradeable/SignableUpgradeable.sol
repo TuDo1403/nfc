@@ -111,6 +111,16 @@ abstract contract SignableUpgradeable is
         }
     }
 
+    function DOMAIN_SEPARATOR()
+        external
+        view
+        virtual
+        override
+        returns (bytes32)
+    {
+        return _domainSeparatorV4();
+    }
+
     /**
      * @dev This empty reserved space is put in place to allow future versions to add new
      * variables without shifting down storage in the inheritance chain.

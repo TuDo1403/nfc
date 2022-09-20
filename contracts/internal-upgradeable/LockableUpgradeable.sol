@@ -42,7 +42,7 @@ abstract contract LockableUpgradeable is Initializable, ILockableUpgradeable {
     }
 
     function _checkLock(address account_) internal view {
-        if (!_blockedUsers.get(account_.fillFirst96Bits()))
+        if (_blockedUsers.get(account_.fillFirst96Bits()))
             revert Lockable__UserIsLocked();
     }
 

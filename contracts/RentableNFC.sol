@@ -11,9 +11,9 @@ import "./interfaces/IRentableNFC.sol";
 contract RentableNFC is NFC, RentableNFT, IRentableNFC {
     using SafeCast for uint256;
 
-    ///@dev value is equal to keccak256("Permit(address user,uint256 deadline,uint256 nonce)")
+    ///@dev value is equal to keccak256("Permit(uint256 tokenId,address user,uint256 deadline,uint256 nonce)")
     bytes32 private constant _PERMIT_TYPE_HASH =
-        0x39efe69afd3743a48f05ca7e519cd9c63bc23964bc52bbc8af1f9438d4e5a177;
+        0xc3c6d1ca0b709df6823691bfba44f3fa8fb23d2b1e1f205b3f4fade39169759b;
 
     uint256 public limit;
 
@@ -88,17 +88,19 @@ contract RentableNFC is NFC, RentableNFT, IRentableNFC {
         if (block.timestamp > deadline_) revert RentableNFC__Expired();
 
         address sender = _msgSender();
+        address owner = ownerOf(tokenId_);
         _checkLock(sender);
         _onlyEOA(sender);
         _verify(
             sender,
-            ownerOf(tokenId_),
+            owner,
             keccak256(
                 abi.encode(
                     _PERMIT_TYPE_HASH,
+                    tokenId_,
                     sender,
                     deadline_,
-                    _useNonce(sender)
+                    _useNonce(owner)
                 )
             ),
             v,

@@ -5,4 +5,6 @@ interface ISignableUpgradeable {
     error Signable__InvalidSignature(address sender);
 
     function nonces(address sender_) external view returns (uint256);
+
+    function DOMAIN_SEPARATOR() external view returns (bytes32);
 }

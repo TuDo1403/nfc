@@ -103,4 +103,14 @@ abstract contract Signable is EIP712, ISignable {
             v := byte(0, calldataload(add(signature_.offset, 0x60)))
         }
     }
+
+    function DOMAIN_SEPARATOR()
+        external
+        view
+        virtual
+        override
+        returns (bytes32)
+    {
+        return _domainSeparatorV4();
+    }
 }

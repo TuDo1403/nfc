@@ -17,6 +17,8 @@ overrides:
       explicitTypes: always
   - files: "*.ts"
     options:
+      tabWidth: 4
+      printWidth: 80
       importOrder: ["<THIRD_PARTY_MODULES>", "^[./]"]
       importOrderParserPlugins: ["typescript"]
       importOrderSeparation: true
