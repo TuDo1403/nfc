@@ -27,7 +27,7 @@ contract RentableNFCUpgradeable is
         string calldata baseURI_,
         uint256 limit_,
         uint256 feeAmount_,
-        address feeToken_,
+        IERC20PermitUpgradeable feeToken_,
         ITreasuryUpgradeable treasury_,
         IBusinessUpgradeable business_
     ) external initializer {

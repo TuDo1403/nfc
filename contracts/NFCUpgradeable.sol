@@ -48,7 +48,10 @@ contract NFCUpgradeable is
     uint256 private _defaultFeeTokenInfo;
     mapping(uint256 => RoyaltyInfo) private _typeRoyalty;
 
-    function updateBusiness(IBusinessUpgradeable business_) external onlyRole(OPERATOR_ROLE) {
+    function updateBusiness(IBusinessUpgradeable business_)
+        external
+        onlyRole(OPERATOR_ROLE)
+    {
         bytes32 bytes32Addr;
         assembly {
             bytes32Addr := business_
@@ -62,7 +65,7 @@ contract NFCUpgradeable is
         string calldata baseURI_,
         uint256 decimals_,
         uint256 feeAmount_,
-        address feeToken_,
+        IERC20PermitUpgradeable feeToken_,
         ITreasuryUpgradeable treasury_,
         IBusinessUpgradeable business_,
         bytes32 version_
@@ -75,21 +78,20 @@ contract NFCUpgradeable is
         _grantRole(OPERATOR_ROLE, sender);
         _grantRole(UPGRADER_ROLE, sender);
 
-        _defaultFeeTokenInfo =
-            (feeToken_.fillFirst96Bits() << 96) |
-            feeAmount_.toUint96();
-
         version = version_;
+        decimals = decimals_ & ~uint8(0);
 
         bytes32 bytes32Treasury;
         bytes32 bytes32Business;
+        uint256 uintFeeToken;
         assembly {
             bytes32Treasury := treasury_
             bytes32Business := business_
+            uintFeeToken := feeToken_
         }
         _treasury = bytes32Treasury;
         _business = bytes32Business;
-        decimals = decimals_ & ~uint8(0);
+        _defaultFeeTokenInfo = (uintFeeToken << 96) | feeAmount_.toUint96();
     }
 
     function withdraw(address to_, uint256 amount_)
