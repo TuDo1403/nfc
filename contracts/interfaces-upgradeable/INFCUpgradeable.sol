@@ -2,7 +2,6 @@
 pragma solidity ^0.8.15;
 
 import "../external-upgradeable/token/ERC20/IERC20Upgradeable.sol";
-import "./IBusinessUpgradeable.sol";
 
 interface INFCUpgradeable {
     error NFC__Expired();
