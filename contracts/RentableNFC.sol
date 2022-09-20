@@ -82,14 +82,10 @@ contract RentableNFC is NFC, RentableNFT, IRentableNFC {
 
     function _setUser(uint256 tokenId_, address user_) internal {
         UserInfo memory userInfo = _users[tokenId_];
-        if (userInfo.expires > limit) revert RentableNFC__LimitExceeded();
         unchecked {
-            emit UserUpdated(
-                tokenId_,
-                userInfo.user = user_,
-                ++userInfo.expires
-            );
+            if (++userInfo.expires > limit) revert RentableNFC__LimitExceeded();
         }
+        emit UserUpdated(tokenId_, userInfo.user = user_, userInfo.expires);
 
         _users[tokenId_] = userInfo;
     }
