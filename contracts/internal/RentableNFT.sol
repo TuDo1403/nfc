@@ -12,25 +12,6 @@ abstract contract RentableNFT is ERC721, IERC4907 {
 
     mapping(uint256 => UserInfo) internal _users;
 
-    function setUser(
-        uint256 tokenId,
-        address user,
-        uint256 expires
-    ) external virtual override {
-        if (!_isApprovedOrOwner(_msgSender(), tokenId))
-            revert Rentable__OnlyOwnerOrApproved();
-
-        UserInfo memory info = _users[tokenId];
-        info.user = user;
-        unchecked {
-            info.expires = (block.timestamp + expires).toUint96();
-        }
-
-        _users[tokenId] = info;
-
-        emit UserUpdated(tokenId, user, expires);
-    }
-
     function userOf(uint256 tokenId)
         external
         view

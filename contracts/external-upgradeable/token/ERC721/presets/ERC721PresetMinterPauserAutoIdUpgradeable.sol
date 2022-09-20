@@ -93,15 +93,15 @@ abstract contract ERC721PresetMinterPauserAutoIdUpgradeable is
      *
      * - the caller must have the `MINTER_ROLE`.
      */
-    function mint(address to) public virtual {
-        _checkRole(MINTER_ROLE, _msgSender());
+    // function mint(address to) public virtual {
+    //     _checkRole(MINTER_ROLE, _msgSender());
 
-        // We cannot just use balanceOf to create the new tokenId because tokens
-        // can be burned (destroyed), so we need a separate counter.
-        unchecked {
-            _mint(to, _tokenIdTracker++);
-        }
-    }
+    //     // We cannot just use balanceOf to create the new tokenId because tokens
+    //     // can be burned (destroyed), so we need a separate counter.
+    //     unchecked {
+    //         _mint(to, _tokenIdTracker++);
+    //     }
+    // }
 
     /**
      * @dev Pauses all token transfers.

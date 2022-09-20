@@ -75,12 +75,18 @@ contract NFC is
         _deposit(sender, tokenId_, deadline_, signature_);
     }
 
-    function mint(uint256 type_) external override onlyRole(MINTER_ROLE) {
-        uint256 id;
+    function mint(uint256 type_)
+        external
+        override
+        onlyRole(MINTER_ROLE)
+        returns (uint256 id)
+    {
         unchecked {
-            id = (++_tokenIdTracker << 8) | (type_ & ~uint8(0));
+            _mint(
+                address(this),
+                id = (++_tokenIdTracker << 8) | (type_ & ~uint8(0))
+            );
         }
-        _mint(address(this), id);
     }
 
     function setTypeFee(
@@ -141,7 +147,7 @@ contract NFC is
             takers := bytes32Takers
         }
         uint256 feeData = royaltyInfo.feeData;
-        price = royaltyInfo.feeData & ~uint96(0);
+        price = feeData & ~uint96(0);
         token = feeData.fromLast160Bits();
         uint256 _takerPercents = royaltyInfo.takerPercents;
         nTakers = _takerPercents & 0xff;
@@ -197,7 +203,7 @@ contract NFC is
         ) = royaltyInfoOf(typeOf(tokenId_));
         if (block.timestamp > deadline_) revert NFC__Expired();
         if (signature_.length == 65) {
-            (bytes32 r, bytes32 s, uint8 v) = _splitSignature(signature_);
+            (uint8 v, bytes32 r, bytes32 s) = _splitSignature(signature_);
             IERC20Permit(token).permit(
                 sender_,
                 address(this),

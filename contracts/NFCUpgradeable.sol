@@ -65,8 +65,13 @@ contract NFCUpgradeable is
         _deposit(sender, tokenId_, deadline_, signature_);
     }
 
-    function mint(uint256 type_) external override onlyRole(MINTER_ROLE) {
-        uint256 id;
+    function mint(uint256 type_)
+        external
+        override
+        onlyRole(MINTER_ROLE)
+        returns (uint256 id)
+    {
+        id;
         unchecked {
             id = (++_tokenIdTracker << 8) | (type_ & ~uint8(0));
         }
@@ -79,7 +84,7 @@ contract NFCUpgradeable is
         uint256 price_,
         address[] calldata takers_,
         uint256[] calldata takerPercents_
-    ) external override onlyRole(DEFAULT_ADMIN_ROLE) {
+    ) external override onlyRole(OPERATOR_ROLE) {
         uint256 nTaker;
         unchecked {
             nTaker = takerPercents_.length % 32;
@@ -206,7 +211,7 @@ contract NFCUpgradeable is
         ) = royaltyInfoOf(typeOf(tokenId_));
         if (block.timestamp > deadline_) revert NFC__Expired();
         if (signature_.length == 65) {
-            (bytes32 r, bytes32 s, uint8 v) = _splitSignature(signature_);
+            (uint8 v, bytes32 r, bytes32 s) = _splitSignature(signature_);
             IERC20PermitUpgradeable(token).permit(
                 sender_,
                 address(this),

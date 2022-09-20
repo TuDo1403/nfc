@@ -99,9 +99,9 @@ abstract contract SignableUpgradeable is
         pure
         virtual
         returns (
+            uint8 v,
             bytes32 r,
-            bytes32 s,
-            uint8 v
+            bytes32 s
         )
     {
         assembly {

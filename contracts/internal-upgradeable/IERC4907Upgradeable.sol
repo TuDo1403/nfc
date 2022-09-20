@@ -17,17 +17,6 @@ interface IERC4907Upgradeable {
         uint256 expires
     );
 
-    /// @notice set the user and expires of a NFT
-    /// @dev The zero address indicates there is no user
-    /// Throws if `tokenId` is not valid NFT
-    /// @param user  The new user of the NFT
-    /// @param expires  UNIX timestamp, The new user could use the NFT before expires
-    function setUser(
-        uint256 tokenId,
-        address user,
-        uint256 expires
-    ) external;
-
     /// @notice Get the user address of an NFT
     /// @dev The zero address indicates that there is no user or the user is expired
     /// @param tokenId The NFT to get the user address for

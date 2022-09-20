@@ -28,7 +28,7 @@ interface INFCUpgradeable {
         bytes calldata signature_
     ) external payable;
 
-    function mint(uint256 type_) external;
+    function mint(uint256 type_) external returns (uint256);
 
     function setTypeFee(
         IERC20Upgradeable feeToken_,

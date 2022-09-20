@@ -55,16 +55,23 @@ contract RentableNFCUpgradeable is
         _setLimit(limit_);
     }
 
-    function setUser(
-        uint256 tokenId,
-        address user,
-        uint256 expires
-    ) external override whenNotPaused {
+    function setUser(uint256 tokenId, address user)
+        external
+        override
+        whenNotPaused
+        onlyRole(MINTER_ROLE)
+    {
         _checkLock(user);
-        expires = 0;
-        if (!_isApprovedOrOwner(_msgSender(), tokenId))
-            revert RentableNFC__Unauthorized();
         _setUser(tokenId, user);
+    }
+
+    function userOf(uint256 tokenId)
+        external
+        view
+        override
+        returns (address user)
+    {
+        user = _users[tokenId].user;
     }
 
     function supportsInterface(bytes4 interfaceId_)
@@ -78,13 +85,9 @@ contract RentableNFCUpgradeable is
 
     function _setUser(uint256 tokenId_, address user_) internal {
         UserInfo memory userInfo = _users[tokenId_];
-        if (userInfo.expires > limit) revert RentableNFC__LimitExceeded();
+        if (userInfo.expires++ > limit) revert RentableNFC__LimitExceeded();
         unchecked {
-            emit UserUpdated(
-                tokenId_,
-                userInfo.user = user_,
-                ++userInfo.expires
-            );
+            emit UserUpdated(tokenId_, userInfo.user = user_, userInfo.expires);
         }
 
         _users[tokenId_] = userInfo;

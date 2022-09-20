@@ -19,25 +19,6 @@ abstract contract RentableNFTUpgradeable is
 
     function __RentableNFT_init_unchained() internal onlyInitializing {}
 
-    function setUser(
-        uint256 tokenId,
-        address user,
-        uint256 expires
-    ) external virtual override {
-        if (!_isApprovedOrOwner(_msgSender(), tokenId))
-            revert Rentable__OnlyOwnerOrApproved();
-
-        UserInfo memory info = _users[tokenId];
-        info.user = user;
-        unchecked {
-            info.expires = (block.timestamp + expires).toUint96();
-        }
-
-        _users[tokenId] = info;
-
-        emit UserUpdated(tokenId, user, expires);
-    }
-
     function userOf(uint256 tokenId)
         external
         view

@@ -10,4 +10,6 @@ interface IRentableNFCUpgradeable {
     event LimitSet(uint256 indexed from, uint256 indexed to);
 
     function setLimit(uint256 limit_) external;
+
+    function setUser(uint256 tokenId, address user) external;
 }
