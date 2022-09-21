@@ -75,18 +75,19 @@ contract NFC is
         _deposit(sender, tokenId_, deadline_, signature_);
     }
 
-    function mint(uint256 type_)
+    function mint(address to_, uint256 type_)
         external
         override
         onlyRole(MINTER_ROLE)
         returns (uint256 id)
     {
         unchecked {
-            _mint(
-                address(this),
-                id = (++_tokenIdTracker << 8) | (type_ & ~uint8(0))
-            );
+            _mint(to_, id = (++_tokenIdTracker << 8) | (type_ & ~uint8(0)));
         }
+    }
+
+    function setRoleAdmin(bytes32 role, bytes32 adminRole) external override {
+        _setRoleAdmin(role, adminRole);
     }
 
     function setTypeFee(

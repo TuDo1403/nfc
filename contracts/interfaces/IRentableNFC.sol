@@ -12,4 +12,11 @@ interface IRentableNFC {
     function setLimit(uint256 limit_) external;
 
     function setUser(uint256 tokenId, address user) external;
+
+    function deposit(
+        address user_,
+        uint256 tokenId_,
+        uint256 deadline_,
+        bytes calldata signature_
+    ) external;
 }

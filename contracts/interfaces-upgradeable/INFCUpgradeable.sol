@@ -22,13 +22,13 @@ interface INFCUpgradeable {
         uint256 indexed priceFee
     );
 
+    function setRoleAdmin(bytes32 role, bytes32 adminRole) external;
+
     function deposit(
         uint256 tokenId_,
         uint256 deadline_,
         bytes calldata signature_
     ) external payable;
-
-    function mint(uint256 type_) external returns (uint256);
 
     function setTypeFee(
         IERC20Upgradeable feeToken_,
@@ -50,4 +50,6 @@ interface INFCUpgradeable {
         );
 
     function typeOf(uint256 tokenId_) external view returns (uint256);
+
+    function mint(address to_, uint256 type_) external returns (uint256 id);
 }

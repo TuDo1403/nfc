@@ -47,7 +47,9 @@ interface INFC {
             uint256[] memory takerPercents
         );
 
-    function mint(uint256 type_) external returns (uint256 id);
+    function setRoleAdmin(bytes32 role, bytes32 adminRole) external;
+
+    function mint(address to_, uint256 type_) external returns (uint256 id);
 
     function typeOf(uint256 tokenId_) external view returns (uint256);
 }

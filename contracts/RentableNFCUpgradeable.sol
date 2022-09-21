@@ -12,6 +12,8 @@ contract RentableNFCUpgradeable is
     RentableNFTUpgradeable,
     IRentableNFCUpgradeable
 {
+    using AddressLib for address;
+    using AddressLib for uint256;
     using SafeCastUpgradeable for uint256;
 
     uint256 public limit;
@@ -35,15 +37,15 @@ contract RentableNFCUpgradeable is
     }
 
     function deposit(
+        address user_,
         uint256 tokenId_,
         uint256 deadline_,
         bytes calldata signature_
-    ) external payable override nonReentrant whenNotPaused {
-        address sender = _msgSender();
-        _checkLock(sender);
-        _deposit(sender, tokenId_, deadline_, signature_);
+    ) external override onlyRole(OPERATOR_ROLE) {
+        _checkLock(user_);
+        _deposit(user_, tokenId_, deadline_, signature_);
 
-        _setUser(tokenId_, sender);
+        _setUser(tokenId_, user_);
     }
 
     function setLimit(uint256 limit_)
@@ -71,26 +73,27 @@ contract RentableNFCUpgradeable is
         override
         returns (address user)
     {
-        user = _users[tokenId].user;
+        ownerOf(tokenId);
+        user = _userInfos[tokenId].fromLast160Bits();
     }
 
     function supportsInterface(bytes4 interfaceId_)
         public
         view
-        override(NFCUpgradeable, RentableNFTUpgradeable)
+        override(ERC721Upgradeable, NFCUpgradeable)
         returns (bool)
     {
         return super.supportsInterface(interfaceId_);
     }
 
     function _setUser(uint256 tokenId_, address user_) internal {
-        UserInfo memory userInfo = _users[tokenId_];
-        unchecked {
-            if (++userInfo.expires > limit) revert RentableNFC__LimitExceeded();
-        }
-        emit UserUpdated(tokenId_, userInfo.user = user_, userInfo.expires);
+        uint256 userInfo = _userInfos[tokenId_];
+        uint256 _limit = userInfo & ~uint96(0);
+        if (_limit++ == limit) revert RentableNFC__LimitExceeded();
 
-        _users[tokenId_] = userInfo;
+        emit UserUpdated(tokenId_, user_);
+
+        _userInfos[tokenId_] = user_.fillLast96Bits() | (userInfo & ~uint96(0));
     }
 
     function _setLimit(uint256 limit_) internal {
@@ -103,10 +106,7 @@ contract RentableNFCUpgradeable is
         uint256 tokenId_
     )
         internal
-        override(
-            ERC721PresetMinterPauserAutoIdUpgradeable,
-            RentableNFTUpgradeable
-        )
+        override(ERC721Upgradeable, ERC721PresetMinterPauserAutoIdUpgradeable)
     {
         super._beforeTokenTransfer(from_, to_, tokenId_);
     }

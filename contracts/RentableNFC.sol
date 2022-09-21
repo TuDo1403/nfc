@@ -9,6 +9,8 @@ import "./interfaces/IRentableNFC.sol";
 
 contract RentableNFC is NFC, RentableNFT, IRentableNFC {
     using SafeCast for uint256;
+    using AddressLib for uint256;
+    using AddressLib for address;
 
     uint256 public limit;
 
@@ -32,15 +34,15 @@ contract RentableNFC is NFC, RentableNFT, IRentableNFC {
     }
 
     function deposit(
+        address user_,
         uint256 tokenId_,
         uint256 deadline_,
         bytes calldata signature_
-    ) external payable override nonReentrant whenNotPaused {
-        address sender = _msgSender();
-        _onlyEOA(sender);
-        _checkLock(sender);
-        _deposit(sender, tokenId_, deadline_, signature_);
-        _setUser(tokenId_, sender);
+    ) external override onlyRole(MINTER_ROLE) {
+        _checkLock(user_);
+        _deposit(user_, tokenId_, deadline_, signature_);
+
+        _setUser(tokenId_, user_);
     }
 
     function setLimit(uint256 limit_)
@@ -55,7 +57,6 @@ contract RentableNFC is NFC, RentableNFT, IRentableNFC {
     function setUser(uint256 tokenId, address user)
         external
         override
-        whenNotPaused
         onlyRole(MINTER_ROLE)
     {
         _checkLock(user);
@@ -68,26 +69,27 @@ contract RentableNFC is NFC, RentableNFT, IRentableNFC {
         override
         returns (address user)
     {
-        user = _users[tokenId].user;
+        ownerOf(tokenId);
+        user = _users[tokenId].fromLast160Bits();
     }
 
     function supportsInterface(bytes4 interfaceId_)
         public
         view
-        override(NFC, RentableNFT)
+        override(ERC721, NFC)
         returns (bool)
     {
         return super.supportsInterface(interfaceId_);
     }
 
     function _setUser(uint256 tokenId_, address user_) internal {
-        UserInfo memory userInfo = _users[tokenId_];
-        unchecked {
-            if (++userInfo.expires > limit) revert RentableNFC__LimitExceeded();
-        }
-        emit UserUpdated(tokenId_, userInfo.user = user_, userInfo.expires);
+        uint256 userInfo = _users[tokenId_];
+        uint256 _limit = userInfo & ~uint96(0);
+        if (_limit++ == limit) revert RentableNFC__LimitExceeded();
 
-        _users[tokenId_] = userInfo;
+        emit UserUpdated(tokenId_, user_);
+
+        _users[tokenId_] = user_.fillLast96Bits() | (userInfo & ~uint96(0));
     }
 
     function _setLimit(uint256 limit_) internal {
@@ -98,11 +100,7 @@ contract RentableNFC is NFC, RentableNFT, IRentableNFC {
         address from_,
         address to_,
         uint256 tokenId_
-    ) internal override(ERC721PresetMinterPauserAutoId, RentableNFT) {
-        ERC721PresetMinterPauserAutoId._beforeTokenTransfer(
-            from_,
-            to_,
-            tokenId_
-        );
+    ) internal override(ERC721, ERC721PresetMinterPauserAutoId) {
+        super._beforeTokenTransfer(from_, to_, tokenId_);
     }
 }

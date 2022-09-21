@@ -3,6 +3,7 @@ pragma solidity ^0.8.15;
 
 import "../../utils/Context.sol";
 
+import "./IERC20.sol";
 import "../../../libraries/AddressLib.sol";
 
 error ERC20__Expired();
@@ -13,20 +14,8 @@ error ERC20__InvalidSignature();
 /// @author Solmate (https://github.com/transmissions11/solmate/blob/main/src/tokens/ERC20.sol)
 /// @author Modified from Uniswap (https://github.com/Uniswap/uniswap-v2-core/blob/master/contracts/UniswapV2ERC20.sol)
 /// @dev Do not manually set balances without updating totalSupply, as the sum of all user balances must not exceed it.
-abstract contract ERC20 is Context {
+abstract contract ERC20 is Context, IERC20 {
     using AddressLib for address;
-    /*//////////////////////////////////////////////////////////////
-                                 EVENTS
-    //////////////////////////////////////////////////////////////*/
-
-    event Transfer(address indexed from, address indexed to, uint256 amount);
-
-    event Approval(
-        address indexed owner,
-        address indexed spender,
-        uint256 amount
-    );
-
     /*//////////////////////////////////////////////////////////////
                             METADATA STORAGE
     //////////////////////////////////////////////////////////////*/
@@ -43,9 +32,9 @@ abstract contract ERC20 is Context {
 
     uint256 public totalSupply;
 
-    mapping(bytes32 => uint256) public balanceOf;
+    mapping(bytes32 => uint256) private _balanceOf;
 
-    mapping(bytes32 => mapping(bytes32 => uint256)) public allowance;
+    mapping(bytes32 => mapping(bytes32 => uint256)) public _allowance;
 
     /*//////////////////////////////////////////////////////////////
                                CONSTRUCTOR
@@ -74,7 +63,9 @@ abstract contract ERC20 is Context {
         returns (bool)
     {
         address sender = _msgSender();
-        allowance[sender.fillLast12Bytes()][spender.fillLast12Bytes()] = amount;
+        _allowance[sender.fillLast12Bytes()][
+            spender.fillLast12Bytes()
+        ] = amount;
 
         emit Approval(sender, spender, amount);
 
@@ -88,12 +79,12 @@ abstract contract ERC20 is Context {
     {
         address sender = _msgSender();
         _beforeTokenTransfer(sender, to, amount);
-        balanceOf[sender.fillLast12Bytes()] -= amount;
+        _balanceOf[sender.fillLast12Bytes()] -= amount;
 
         // Cannot overflow because the sum of all user
         // balances can't exceed the max uint256 value.
         unchecked {
-            balanceOf[to.fillLast12Bytes()] += amount;
+            _balanceOf[to.fillLast12Bytes()] += amount;
         }
 
         emit Transfer(sender, to, amount);
@@ -114,18 +105,36 @@ abstract contract ERC20 is Context {
         bytes32 _from = from.fillLast12Bytes();
         _spendAllowance(_from, sender, amount);
 
-        balanceOf[_from] -= amount;
+        _balanceOf[_from] -= amount;
 
         // Cannot overflow because the sum of all user
         // balances can't exceed the max uint256 value.
         unchecked {
-            balanceOf[to.fillLast12Bytes()] += amount;
+            _balanceOf[to.fillLast12Bytes()] += amount;
         }
 
         emit Transfer(from, to, amount);
 
         _afterTokenTransfer(from, to, amount);
         return true;
+    }
+
+    function balanceOf(address account)
+        external
+        view
+        override
+        returns (uint256)
+    {
+        return _balanceOf[account.fillLast12Bytes()];
+    }
+
+    function allowance(address owner, address spender)
+        external
+        view
+        override
+        returns (uint256)
+    {
+        return _allowance[owner.fillLast12Bytes()][spender.fillLast12Bytes()];
     }
 
     /*//////////////////////////////////////////////////////////////
@@ -136,9 +145,9 @@ abstract contract ERC20 is Context {
         bytes32 spender_,
         uint256 amount_
     ) internal virtual {
-        uint256 allowed = allowance[owner_][spender_]; // Saves gas for limited approvals.
+        uint256 allowed = _allowance[owner_][spender_]; // Saves gas for limited approvals.
         if (allowed != ~uint256(0))
-            allowance[owner_][spender_] = allowed - amount_;
+            _allowance[owner_][spender_] = allowed - amount_;
     }
 
     function _beforeTokenTransfer(
@@ -160,7 +169,7 @@ abstract contract ERC20 is Context {
         // Cannot overflow because the sum of all user
         // balances can't exceed the max uint256 value.
         unchecked {
-            balanceOf[to.fillLast12Bytes()] += amount;
+            _balanceOf[to.fillLast12Bytes()] += amount;
         }
 
         emit Transfer(address(0), to, amount);
@@ -171,7 +180,7 @@ abstract contract ERC20 is Context {
     function _burn(address from, uint256 amount) internal virtual {
         _beforeTokenTransfer(from, address(0), amount);
 
-        balanceOf[from.fillLast12Bytes()] -= amount;
+        _balanceOf[from.fillLast12Bytes()] -= amount;
 
         // Cannot underflow because a user's balance
         // will never be larger than the total supply.

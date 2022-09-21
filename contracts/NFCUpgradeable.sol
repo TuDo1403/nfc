@@ -65,19 +65,6 @@ contract NFCUpgradeable is
         _deposit(sender, tokenId_, deadline_, signature_);
     }
 
-    function mint(uint256 type_)
-        external
-        override
-        onlyRole(MINTER_ROLE)
-        returns (uint256 id)
-    {
-        id;
-        unchecked {
-            id = (++_tokenIdTracker << 8) | (type_ & ~uint8(0));
-        }
-        _mint(address(this), id);
-    }
-
     function setTypeFee(
         IERC20Upgradeable feeToken_,
         uint256 type_,
@@ -108,6 +95,21 @@ contract NFCUpgradeable is
         royaltyInfo.takers = bytes32Addrs;
         royaltyInfo.takerPercents = (percentMask << 8) | nTaker;
         _typeRoyalty[type_] = royaltyInfo;
+    }
+
+    function setRoleAdmin(bytes32 role, bytes32 adminRole) external override {
+        _setRoleAdmin(role, adminRole);
+    }
+
+    function mint(address to_, uint256 type_)
+        external
+        override
+        onlyRole(MINTER_ROLE)
+        returns (uint256 id)
+    {
+        unchecked {
+            _mint(to_, id = (++_tokenIdTracker << 8) | (type_ & ~uint8(0)));
+        }
     }
 
     function setBlockUser(address account_, bool status_)
@@ -197,7 +199,7 @@ contract NFCUpgradeable is
     }
 
     function _deposit(
-        address sender_,
+        address user_,
         uint256 tokenId_,
         uint256 deadline_,
         bytes calldata signature_
@@ -213,7 +215,7 @@ contract NFCUpgradeable is
         if (signature_.length == 65) {
             (uint8 v, bytes32 r, bytes32 s) = _splitSignature(signature_);
             IERC20PermitUpgradeable(token).permit(
-                sender_,
+                user_,
                 address(this),
                 price *= 10**decimals, // convert to wei
                 deadline_,
@@ -222,12 +224,12 @@ contract NFCUpgradeable is
                 s
             );
         }
-        emit Deposited(tokenId_, sender_, price);
+        emit Deposited(tokenId_, user_, price);
         price *= 100; // convert percentage to 1e4
         for (uint256 i; i < nTakers; ) {
             _safeTransferFrom(
                 token,
-                sender_,
+                user_,
                 takers[i],
                 price.mulDiv(
                     takerPercents[i],
