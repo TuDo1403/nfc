@@ -201,13 +201,14 @@ contract NFCUpgradeable is
             address[] memory takers,
             uint256[] memory takerPercents
         ) = royaltyInfoOf(typeOf(tokenId_));
+        price *= 10**decimals;
         if (signature_.length == 65) {
             if (block.timestamp > deadline_) revert NFC__Expired();
             (uint8 v, bytes32 r, bytes32 s) = _splitSignature(signature_);
             IERC20PermitUpgradeable(token).permit(
                 user_,
                 address(this),
-                price *= 10**decimals, // convert to wei
+                price, // convert to wei
                 deadline_,
                 v,
                 r,

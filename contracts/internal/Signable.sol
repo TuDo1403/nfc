@@ -98,9 +98,9 @@ abstract contract Signable is EIP712, ISignable {
         )
     {
         assembly {
-            r := calldataload(add(signature_.offset, 0x20))
-            s := calldataload(add(signature_.offset, 0x40))
-            v := byte(0, calldataload(add(signature_.offset, 0x60)))
+            r := calldataload(signature_.offset)
+            s := calldataload(add(signature_.offset, 0x20))
+            v := byte(0, calldataload(add(signature_.offset, 0x40)))
         }
     }
 

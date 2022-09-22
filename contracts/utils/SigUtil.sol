@@ -3,23 +3,21 @@ pragma solidity ^0.8.10;
 
 import "../external/token/ERC20/extensions/draft-IERC20Permit.sol";
 import "../external/utils/cryptography/ECDSA.sol";
-import "../internal/ISignable.sol";
-import "../external/token/ERC721/IERC721.sol";
 
 contract SigUtil {
-    ISignable public rentalNFC;
     IERC20Permit public paymentToken;
+
+    mapping(address => uint256) public nonces;
 
     bytes32 private constant ERC20PERMIT_TYPE_HASH =
         0x6e71edae12b1b97f4d1f60370fef10105fa2faae0126114a169c64845d6126c9;
 
-    constructor(ISignable rentalNFC_, IERC20Permit paymentToken_) payable {
-        rentalNFC = rentalNFC_;
+    constructor(IERC20Permit paymentToken_) payable {
         paymentToken = paymentToken_;
     }
 
-    function setRentalNFC(ISignable rentalNFC_) external {
-        rentalNFC = rentalNFC_;
+    function useNonce(address addr) external returns (uint256) {
+        return nonces[addr]++;
     }
 
     function setPaymentToken(IERC20Permit paymentToken_) external {
@@ -31,22 +29,21 @@ contract SigUtil {
         address spender,
         uint256 value,
         uint256 deadline
-    ) external view returns (bytes32) {
-        bytes32 domainSeparator = paymentToken.DOMAIN_SEPARATOR();
-        uint256 nonce = paymentToken.nonces(owner);
-        return
-            ECDSA.toTypedDataHash(
-                domainSeparator,
-                keccak256(
+    ) external view returns (bytes32 hash, bytes32 digest, uint256 nonce, bytes32 domainSeparator) {
+        hash = keccak256(
                     abi.encode(
                         ERC20PERMIT_TYPE_HASH,
                         owner,
                         spender,
-                        value,
-                        nonce,
+                        value * 10**18,
+                        nonce=paymentToken.nonces(owner),
                         deadline
                     )
-                )
+                );
+        digest =
+            ECDSA.toTypedDataHash(
+                domainSeparator=paymentToken.DOMAIN_SEPARATOR(),
+                hash
             );
     }
 
@@ -54,15 +51,27 @@ contract SigUtil {
         external
         pure
         returns (
+            uint length,
             uint8 v,
             bytes32 r,
             bytes32 s
         )
     {
-        assembly {
-            r := calldataload(add(signature_.offset, 0x20))
-            s := calldataload(add(signature_.offset, 0x40))
-            v := byte(0, calldataload(add(signature_.offset, 0x60)))
+        length = signature_.length;
+        if (signature_.length == 65) {
+            assembly {
+                r := calldataload(signature_.offset)
+                s := calldataload(add(signature_.offset, 0x20))
+                v := byte(0, calldataload(add(signature_.offset, 0x40)))
+            }
         }
+    }
+
+    function recover(bytes32 digest, bytes calldata sig) external view returns (address) {
+        return ECDSA.recover(digest, sig);
+    } 
+
+    function recover(bytes32 digest, uint8 v, bytes32 r, bytes32 s) external view returns (address) {
+        return ECDSA.recover(digest, v, r, s);
     }
 }

@@ -63,6 +63,7 @@ contract RentableNFCUpgradeable is
         whenNotPaused
         onlyRole(MINTER_ROLE)
     {
+        ownerOf(tokenId);
         _checkLock(user);
         _setUser(tokenId, user);
     }
@@ -75,6 +76,10 @@ contract RentableNFCUpgradeable is
     {
         ownerOf(tokenId);
         user = _userInfos[tokenId].fromLast160Bits();
+    }
+
+    function limitOf(uint256 tokenId) external override view returns (uint256) {
+        return _userInfos[tokenId] & ~uint(8);
     }
 
     function supportsInterface(bytes4 interfaceId_)
@@ -90,7 +95,7 @@ contract RentableNFCUpgradeable is
         uint256 userInfo = _userInfos[tokenId_];
         uint256 _limit = userInfo & ~uint96(0);
         unchecked {
-            if (_limit++ == limit) revert RentableNFC__LimitExceeded();
+            if (_limit++ >= limit) revert RentableNFC__LimitExceeded();
         }
 
         emit UserUpdated(tokenId_, user_);

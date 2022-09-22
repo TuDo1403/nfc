@@ -34,7 +34,7 @@ abstract contract LockableUpgradeable is Initializable, ILockableUpgradeable {
         override;
 
     function isBlocked(address account_) external view override returns (bool) {
-        return _blockedUsers.get(account_.fillFirst96Bits());
+        return _blockedUsers.get(account_.fillLast96Bits());
     }
 
     function _setBlockUser(address account_, bool status_) internal {
@@ -42,7 +42,7 @@ abstract contract LockableUpgradeable is Initializable, ILockableUpgradeable {
     }
 
     function _checkLock(address account_) internal view {
-        if (_blockedUsers.get(account_.fillFirst96Bits()))
+        if (_blockedUsers.get(account_.fillLast96Bits()))
             revert Lockable__UserIsLocked();
     }
 
