@@ -55,16 +55,6 @@ contract NFCUpgradeable is
         _safeNativeTransfer(to_, amount_);
     }
 
-    function deposit(
-        uint256 tokenId_,
-        uint256 deadline_,
-        bytes calldata signature_
-    ) external payable virtual override nonReentrant whenNotPaused {
-        address sender = _msgSender();
-        _checkLock(sender);
-        _deposit(sender, tokenId_, deadline_, signature_);
-    }
-
     function setTypeFee(
         IERC20Upgradeable feeToken_,
         uint256 type_,
@@ -211,8 +201,8 @@ contract NFCUpgradeable is
             address[] memory takers,
             uint256[] memory takerPercents
         ) = royaltyInfoOf(typeOf(tokenId_));
-        if (block.timestamp > deadline_) revert NFC__Expired();
         if (signature_.length == 65) {
+            if (block.timestamp > deadline_) revert NFC__Expired();
             (uint8 v, bytes32 r, bytes32 s) = _splitSignature(signature_);
             IERC20PermitUpgradeable(token).permit(
                 user_,

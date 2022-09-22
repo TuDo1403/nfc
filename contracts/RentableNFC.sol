@@ -38,7 +38,7 @@ contract RentableNFC is NFC, RentableNFT, IRentableNFC {
         uint256 tokenId_,
         uint256 deadline_,
         bytes calldata signature_
-    ) external override onlyRole(MINTER_ROLE) {
+    ) external override whenNotPaused onlyRole(MINTER_ROLE) {
         _checkLock(user_);
         _deposit(user_, tokenId_, deadline_, signature_);
 
@@ -57,6 +57,7 @@ contract RentableNFC is NFC, RentableNFT, IRentableNFC {
     function setUser(uint256 tokenId, address user)
         external
         override
+        whenNotPaused
         onlyRole(MINTER_ROLE)
     {
         _checkLock(user);

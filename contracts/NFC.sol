@@ -64,17 +64,6 @@ contract NFC is
         _safeNativeTransfer(to_, amount_);
     }
 
-    function deposit(
-        uint256 tokenId_,
-        uint256 deadline_,
-        bytes calldata signature_
-    ) external payable virtual override nonReentrant whenNotPaused {
-        address sender = _msgSender();
-        _onlyEOA(sender);
-        _checkLock(sender);
-        _deposit(sender, tokenId_, deadline_, signature_);
-    }
-
     function mint(address to_, uint256 type_)
         external
         override
@@ -202,8 +191,9 @@ contract NFC is
             address[] memory takers,
             uint256[] memory takerPercents
         ) = royaltyInfoOf(typeOf(tokenId_));
-        if (block.timestamp > deadline_) revert NFC__Expired();
+
         if (signature_.length == 65) {
+            if (block.timestamp > deadline_) revert NFC__Expired();
             (uint8 v, bytes32 r, bytes32 s) = _splitSignature(signature_);
             IERC20Permit(token).permit(
                 sender_,

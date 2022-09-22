@@ -24,12 +24,6 @@ interface INFCUpgradeable {
 
     function setRoleAdmin(bytes32 role, bytes32 adminRole) external;
 
-    function deposit(
-        uint256 tokenId_,
-        uint256 deadline_,
-        bytes calldata signature_
-    ) external payable;
-
     function setTypeFee(
         IERC20Upgradeable feeToken_,
         uint256 type_,

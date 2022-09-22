@@ -22,12 +22,6 @@ interface INFC {
         uint256 indexed priceFee
     );
 
-    function deposit(
-        uint256 tokenId_,
-        uint256 deadline_,
-        bytes calldata signature_
-    ) external payable;
-
     function setTypeFee(
         IERC20Permit feeToken_,
         uint256 type_,
