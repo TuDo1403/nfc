@@ -3,7 +3,7 @@ pragma solidity ^0.8.10;
 
 error NoProxy__ProxyNotAllowed();
 
-abstract contract NoProxy is Context {
+abstract contract NoProxy {
     modifier onlyEOA() {
         _onlyEOA(msg.sender);
         _;
