@@ -2,23 +2,24 @@
 pragma solidity ^0.8.15;
 
 import "./NFCUpgradeable.sol";
-
-import "./utils/NoProxy.sol";
 import "./internal-upgradeable/RentableNFTUpgradeable.sol";
-
+import "./internal-upgradeable/FundForwarderUpgradeable.sol";
 import "./interfaces-upgradeable/IRentableNFCUpgradeable.sol";
+import "./internal-upgradeable/IWithdrawableUpgradeable.sol";
 
 contract RentableNFCUpgradeable is
-    NoProxy,
     NFCUpgradeable,
     RentableNFTUpgradeable,
-    IRentableNFCUpgradeable
+    IRentableNFCUpgradeable,
+    FundForwarderUpgradeable
 {
-    using AddressLib for address;
-    using AddressLib for uint256;
+    using Bytes32Address for address;
+    using Bytes32Address for uint256;
+    using Bytes32Address for bytes32;
     using SafeCastUpgradeable for uint256;
 
     uint256 public limit;
+    bytes32 private _treasury;
 
     function init(
         string calldata name_,
@@ -36,6 +37,41 @@ contract RentableNFCUpgradeable is
         );
 
         _setLimit(limit_);
+    }
+
+    function setTreasury(ITreasuryUpgradeable treasury_)
+        external
+        onlyRole(OPERATOR_ROLE)
+    {
+        bytes32 treasury;
+        assembly {
+            treasury := treasury_
+        }
+        _treasury = treasury;
+    }
+
+    function redeem(
+        address to_,
+        address user_,
+        uint256 type_,
+        IERC20Upgradeable reward_,
+        uint256 amount_
+    ) external onlyRole(OPERATOR_ROLE) {
+        _checkLock(user_);
+        uint256 id;
+        if (_ownerOf[id].fromFirst20Bytes() == address(0)) {
+            unchecked {
+                _mint(to_, id = (++_tokenIdTracker << 8) | (type_ & ~uint8(0)));
+            }
+        }
+        _setUser(id, user_);
+        IWithdrawableUpgradeable treasury;
+        assembly {
+            treasury := sload(_treasury.slot)
+        }
+        treasury.withdraw(address(reward_), user_, amount_);
+
+        emit Redeemed(id, user_, reward_, amount_);
     }
 
     function deposit(
@@ -66,7 +102,6 @@ contract RentableNFCUpgradeable is
         onlyRole(MINTER_ROLE)
     {
         ownerOf(tokenId);
-        _onlyEOA(user);
         _checkLock(user);
         _setUser(tokenId, user);
     }
@@ -128,5 +163,5 @@ contract RentableNFCUpgradeable is
      * variables without shifting down storage in the inheritance chain.
      * See https://docs.openzeppelin.com/contracts/4.x/upgradeable#storage_gaps
      */
-    uint256[49] private __gap;
+    uint256[48] private __gap;
 }

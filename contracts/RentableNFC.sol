@@ -9,8 +9,8 @@ import "./interfaces/IRentableNFC.sol";
 
 contract RentableNFC is NoProxy, NFC, RentableNFT, IRentableNFC {
     using SafeCast for uint256;
-    using AddressLib for uint256;
-    using AddressLib for address;
+    using Bytes32Address for uint256;
+    using Bytes32Address for address;
 
     uint256 public limit;
 

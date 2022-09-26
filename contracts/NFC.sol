@@ -1,22 +1,25 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.15;
 
-import "./external/security/ReentrancyGuard.sol";
-import "./external/token/ERC721/presets/ERC721PresetMinterPauserAutoId.sol";
+import "oz-custom/contracts/oz/security/ReentrancyGuard.sol";
+import "oz-custom/contracts/oz/token/ERC721/presets/ERC721PresetMinterPauserAutoId.sol";
+
+import "oz-custom/contracts/internal/Signable.sol";
 
 import "./internal/Lockable.sol";
 import "./internal/Withdrawable.sol";
 
-import "./external/utils/math/Math.sol";
-import "./external/utils/math/SafeCast.sol";
+import "@openzeppelin/contracts/utils/math/Math.sol";
+import "oz-custom/contracts/oz/utils/math/SafeCast.sol";
 
 import "./interfaces/INFC.sol";
 
-import "./libraries/StringLib.sol";
+import "oz-custom/contracts/libraries/StringLib.sol";
 
 contract NFC is
     INFC,
     Lockable,
+    Signable,
     Withdrawable,
     ReentrancyGuard,
     ERC721PresetMinterPauserAutoId
@@ -24,8 +27,8 @@ contract NFC is
     using Math for uint256;
     using SafeCast for uint256;
     using StringLib for uint256;
-    using AddressLib for uint256;
-    using AddressLib for address;
+    using Bytes32Address for uint256;
+    using Bytes32Address for address;
 
     uint8 public immutable decimals;
     bytes32 public immutable version;
@@ -52,13 +55,13 @@ contract NFC is
         decimals = _decimals;
     }
 
-    function withdraw(address to_, uint256 amount_)
+    function withdraw(address token_, address to_, uint256 amount_)
         external
         virtual
         override
         onlyRole(DEFAULT_ADMIN_ROLE)
     {
-        _safeNativeTransfer(to_, amount_);
+        _safeTransfer(token_, to_, amount_);
     }
 
     function mint(address to_, uint256 type_)
@@ -191,7 +194,7 @@ contract NFC is
 
         if (signature_.length == 65) {
             if (block.timestamp > deadline_) revert NFC__Expired();
-            (uint8 v, bytes32 r, bytes32 s) = _splitSignature(signature_);
+            (bytes32 r, bytes32 s, uint8 v) = _splitSignature(signature_);
             IERC20Permit(token).permit(
                 sender_,
                 address(this),

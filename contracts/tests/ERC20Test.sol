@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.15;
 
-import "../external/token/ERC20/extensions/draft-ERC20Permit.sol";
+import "oz-custom/contracts/oz/token/ERC20/extensions/draft-ERC20Permit.sol";
 
 contract ERC20Test is ERC20Permit {
     constructor(string memory name_, string memory symbol_)

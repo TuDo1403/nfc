@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.10;
 
-import "../external/token/ERC20/extensions/draft-IERC20Permit.sol";
-import "../external/utils/cryptography/ECDSA.sol";
+import "oz-custom/contracts/oz/token/ERC20/extensions/draft-IERC20Permit.sol";
+import "oz-custom/contracts/oz/utils/cryptography/ECDSA.sol";
 
 contract SigUtil {
     IERC20Permit public paymentToken;
@@ -29,29 +29,37 @@ contract SigUtil {
         address spender,
         uint256 value,
         uint256 deadline
-    ) external view returns (bytes32 hash, bytes32 digest, uint256 nonce, bytes32 domainSeparator) {
+    )
+        external
+        view
+        returns (
+            bytes32 hash,
+            bytes32 digest,
+            uint256 nonce,
+            bytes32 domainSeparator
+        )
+    {
         hash = keccak256(
-                    abi.encode(
-                        ERC20PERMIT_TYPE_HASH,
-                        owner,
-                        spender,
-                        value * 10**18,
-                        nonce=paymentToken.nonces(owner),
-                        deadline
-                    )
-                );
-        digest =
-            ECDSA.toTypedDataHash(
-                domainSeparator=paymentToken.DOMAIN_SEPARATOR(),
-                hash
-            );
+            abi.encode(
+                ERC20PERMIT_TYPE_HASH,
+                owner,
+                spender,
+                value * 10**18,
+                nonce = paymentToken.nonces(owner),
+                deadline
+            )
+        );
+        digest = ECDSA.toTypedDataHash(
+            domainSeparator = paymentToken.DOMAIN_SEPARATOR(),
+            hash
+        );
     }
 
     function splitSignature(bytes calldata signature_)
         external
         pure
         returns (
-            uint length,
+            uint256 length,
             uint8 v,
             bytes32 r,
             bytes32 s
@@ -67,11 +75,20 @@ contract SigUtil {
         }
     }
 
-    function recover(bytes32 digest, bytes calldata sig) external view returns (address) {
+    function recover(bytes32 digest, bytes calldata sig)
+        external
+        view
+        returns (address)
+    {
         return ECDSA.recover(digest, sig);
-    } 
+    }
 
-    function recover(bytes32 digest, uint8 v, bytes32 r, bytes32 s) external view returns (address) {
+    function recover(
+        bytes32 digest,
+        uint8 v,
+        bytes32 r,
+        bytes32 s
+    ) external view returns (address) {
         return ECDSA.recover(digest, v, r, s);
     }
 }

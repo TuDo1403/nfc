@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.15;
 
-import "../external/token/ERC20/extensions/draft-IERC20Permit.sol";
+import "oz-custom/contracts/oz/token/ERC20/extensions/draft-IERC20Permit.sol";
 
 interface INFC {
     error NFC__Expired();

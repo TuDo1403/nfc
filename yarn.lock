@@ -8359,6 +8359,7 @@ __metadata:
     lint-staged: ^13.0.3
     lodash: ^4.17.21
     mocha: ^10.0.0
+    oz-custom: ^1.0.0
     pinst: ^3.0.0
     prettier: ^2.7.1
     prettier-plugin-solidity: ^1.0.0-beta.24
@@ -8749,6 +8750,13 @@ __metadata:
   version: 1.0.2
   resolution: "os-tmpdir@npm:1.0.2"
   checksum: 5666560f7b9f10182548bf7013883265be33620b1c1b4a4d405c25be2636f970c5488ff3e6c48de75b55d02bde037249fe5dbfbb4c0fb7714953d56aed062e6d
+  languageName: node
+  linkType: hard
+
+"oz-custom@npm:^1.0.0":
+  version: 1.0.0
+  resolution: "oz-custom@npm:1.0.0"
+  checksum: bfcfcfa09bae84e19c3970a7bb8e7583ef1d900796133e718dfbf60ffc30f9cc53aa8ade505836e7a1a3bffd3fdac4750553b4b431220b6cd68ae94de5732b3d
   languageName: node
   linkType: hard
 

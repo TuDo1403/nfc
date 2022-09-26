@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.15;
 
-import "../external-upgradeable/token/ERC721/ERC721Upgradeable.sol";
+import "oz-custom/contracts/oz-upgradeable/token/ERC721/ERC721Upgradeable.sol";
 
 import "./IRentableNFTUpgradeable.sol";
 
-import "../external-upgradeable/utils/math/SafeCastUpgradeable.sol";
+import "oz-custom/contracts/oz-upgradeable/utils/math/SafeCastUpgradeable.sol";
 
 abstract contract RentableNFTUpgradeable is
     ERC721Upgradeable,

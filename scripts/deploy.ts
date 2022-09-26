@@ -12,15 +12,25 @@ async function main(): Promise<void> {
     // await treasury.deployed();
     // console.log("Treasury deployed to : ", treasury.address);
 
-    const Business: ContractFactory = await ethers.getContractFactory(
-        "BusinessUpgradeable",
+    // const Business: ContractFactory = await ethers.getContractFactory(
+    //     "BusinessUpgradeable",
+    // );
+    // const business: Contract = await upgrades.deployProxy(Business, [], {
+    //     kind: "uups",
+    //     initializer: "init",
+    // });
+    // await business.deployed();
+    // console.log("Business deployed to : ", business.address);
+
+    const Treasury: ContractFactory = await ethers.getContractFactory(
+        "TreasuryUpgradeable",
     );
-    const business: Contract = await upgrades.deployProxy(Business, [], {
+    const treasury: Contract = await upgrades.deployProxy(Treasury, [], {
         kind: "uups",
         initializer: "init",
     });
-    await business.deployed();
-    console.log("Business deployed to : ", business.address);
+    await treasury.deployed();
+    console.log("Treasury deployed to : ", treasury.address);
 
     // const ERC20Test: ContractFactory = await ethers.getContractFactory("ERC20Test");
     // const erc20Test: Contract = await ERC20Test.deploy(

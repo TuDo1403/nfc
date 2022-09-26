@@ -1,16 +1,16 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.10;
 
-import "../external/utils/structs/BitMaps.sol";
+import "oz-custom/contracts/oz/utils/structs/BitMaps.sol";
 
 import "./ILockable.sol";
 
-import "../libraries/AddressLib.sol";
+import "oz-custom/contracts/libraries/Bytes32Address.sol";
 
 error Lockable__UserIsLocked();
 
 abstract contract Lockable is ILockable {
-    using AddressLib for address;
+    using Bytes32Address for address;
     using BitMaps for BitMaps.BitMap;
 
     BitMaps.BitMap private _blockedUsers;

@@ -1,18 +1,22 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.15;
 
-import "./external-upgradeable/proxy/utils/UUPSUpgradeable.sol";
-import "./external-upgradeable/security/ReentrancyGuardUpgradeable.sol";
-import "./external-upgradeable/token/ERC721/presets/ERC721PresetMinterPauserAutoIdUpgradeable.sol";
+import "oz-custom/contracts/oz-upgradeable/proxy/utils/UUPSUpgradeable.sol";
+import "oz-custom/contracts/oz-upgradeable/security/ReentrancyGuardUpgradeable.sol";
+import "oz-custom/contracts/oz-upgradeable/token/ERC721/presets/ERC721PresetMinterPauserAutoIdUpgradeable.sol";
+
+import "oz-custom/contracts/internal-upgradeable/SignableUpgradeable.sol";
 
 import "./internal-upgradeable/LockableUpgradeable.sol";
-import "./internal-upgradeable/WithdrawableUpgradeable.sol";
+import "./internal-upgradeable/TransferableUpgradeable.sol";
+import "./internal-upgradeable/FundForwarderUpgradeable.sol";
 
-import "./external-upgradeable/utils/math/MathUpgradeable.sol";
-import "./external-upgradeable/utils/math/SafeCastUpgradeable.sol";
+
+import "oz-custom/contracts/oz-upgradeable/utils/math/MathUpgradeable.sol";
+import "oz-custom/contracts/oz-upgradeable/utils/math/SafeCastUpgradeable.sol";
 
 import "./interfaces-upgradeable/INFCUpgradeable.sol";
-import "./external-upgradeable/token/ERC20/extensions/draft-IERC20PermitUpgradeable.sol";
+import "oz-custom/contracts/oz-upgradeable/token/ERC20/extensions/draft-IERC20PermitUpgradeable.sol";
 
 import "./libraries/StringLib.sol";
 
@@ -20,13 +24,14 @@ contract NFCUpgradeable is
     INFCUpgradeable,
     UUPSUpgradeable,
     LockableUpgradeable,
-    WithdrawableUpgradeable,
+    SignableUpgradeable,
+    TransferableUpgradeable,
     ReentrancyGuardUpgradeable,
     ERC721PresetMinterPauserAutoIdUpgradeable
 {
     using StringLib for uint256;
-    using AddressLib for uint256;
-    using AddressLib for address;
+    using Bytes32Address for uint256;
+    using Bytes32Address for address;
     using MathUpgradeable for uint256;
     using SafeCastUpgradeable for uint256;
 
@@ -45,15 +50,6 @@ contract NFCUpgradeable is
 
     uint256 private _defaultFeeTokenInfo;
     mapping(uint256 => RoyaltyInfo) private _typeRoyalty;
-
-    function withdraw(address to_, uint256 amount_)
-        external
-        virtual
-        override
-        onlyRole(OPERATOR_ROLE)
-    {
-        _safeNativeTransfer(to_, amount_);
-    }
 
     function setTypeFee(
         IERC20Upgradeable feeToken_,
@@ -204,7 +200,7 @@ contract NFCUpgradeable is
         price *= 10**decimals;
         if (signature_.length == 65) {
             if (block.timestamp > deadline_) revert NFC__Expired();
-            (uint8 v, bytes32 r, bytes32 s) = _splitSignature(signature_);
+            (bytes32 r, bytes32 s, uint8 v) = _splitSignature(signature_);
             IERC20PermitUpgradeable(token).permit(
                 user_,
                 address(this),

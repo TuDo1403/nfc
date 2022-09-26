@@ -162,7 +162,6 @@
 //     {
 //         return _acceptedPayments.get(token_.fillLast96Bits());
 //     }
-
 //     function verifier() external view override returns (address) {
 //         return _verifier.fromFirst20Bytes();
 //     }

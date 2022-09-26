@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.15;
 
-import "../external/token/ERC721/ERC721.sol";
+import "oz-custom/contracts/oz/token/ERC721/ERC721.sol";
 
 import "./IRentableNFT.sol";
 
-import "../external/utils/math/SafeCast.sol";
+import "oz-custom/contracts/oz/utils/math/SafeCast.sol";
 
 abstract contract RentableNFT is ERC721, IRentableNFT {
     using SafeCast for uint256;

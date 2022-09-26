@@ -1,16 +1,16 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.10;
 
-import "../external-upgradeable/proxy/utils/Initializable.sol";
+import "oz-custom/contracts/oz-upgradeable/proxy/utils/Initializable.sol";
 
-import "../external-upgradeable/utils/structs/BitMapsUpgradeable.sol";
+import "oz-custom/contracts/oz-upgradeable/utils/structs/BitMapsUpgradeable.sol";
 
 import "./ILockableUpgradeable.sol";
 
-import "../libraries/AddressLib.sol";
+import "oz-custom/contracts/libraries/Bytes32Address.sol";
 
 abstract contract LockableUpgradeable is Initializable, ILockableUpgradeable {
-    using AddressLib for address;
+    using Bytes32Address for address;
     using BitMapsUpgradeable for BitMapsUpgradeable.BitMap;
 
     BitMapsUpgradeable.BitMap private _blockedUsers;

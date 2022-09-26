@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.15;
 
-import "../external-upgradeable/proxy/utils/Initializable.sol";
+import "oz-custom/contracts/oz-upgradeable/proxy/utils/Initializable.sol";
 
 error Transferable__TransferFailed();
 error Transferable__InvalidArguments();

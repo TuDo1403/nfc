@@ -1,12 +1,17 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.15;
 
+import "./ITreasuryUpgradeable.sol";
+import "oz-custom/contracts/oz-upgradeable/token/ERC20/IERC20Upgradeable.sol";
+
 interface IRentableNFCUpgradeable {
     error RentableNFC__Rented();
     error RentableNFC__Expired();
     error RentableNFC__AlreadySet();
     error RentableNFC__Unauthorized();
     error RentableNFC__LimitExceeded();
+
+    event Redeemed(uint256 id, address user, IERC20Upgradeable reward, uint256 amount);
 
     event LimitSet(uint256 indexed from, uint256 indexed to);
 
