@@ -4,6 +4,7 @@ pragma solidity ^0.8.15;
 interface IRentableNFCUpgradeable {
     error RentableNFC__Rented();
     error RentableNFC__Expired();
+    error RentableNFC__AlreadySet();
     error RentableNFC__Unauthorized();
     error RentableNFC__LimitExceeded();
 

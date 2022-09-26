@@ -3,11 +3,13 @@ pragma solidity ^0.8.15;
 
 import "./NFCUpgradeable.sol";
 
+import "./utils/NoProxy.sol";
 import "./internal-upgradeable/RentableNFTUpgradeable.sol";
 
 import "./interfaces-upgradeable/IRentableNFCUpgradeable.sol";
 
 contract RentableNFCUpgradeable is
+    NoProxy,
     NFCUpgradeable,
     RentableNFTUpgradeable,
     IRentableNFCUpgradeable
@@ -64,6 +66,7 @@ contract RentableNFCUpgradeable is
         onlyRole(MINTER_ROLE)
     {
         ownerOf(tokenId);
+        _onlyEOA(user);
         _checkLock(user);
         _setUser(tokenId, user);
     }
@@ -78,8 +81,8 @@ contract RentableNFCUpgradeable is
         user = _userInfos[tokenId].fromLast160Bits();
     }
 
-    function limitOf(uint256 tokenId) external override view returns (uint256) {
-        return _userInfos[tokenId] & ~uint(8);
+    function limitOf(uint256 tokenId) external view override returns (uint256) {
+        return _userInfos[tokenId] & ~uint96(0);
     }
 
     function supportsInterface(bytes4 interfaceId_)
@@ -93,6 +96,8 @@ contract RentableNFCUpgradeable is
 
     function _setUser(uint256 tokenId_, address user_) internal {
         uint256 userInfo = _userInfos[tokenId_];
+        if (userInfo.fromLast160Bits() == user_)
+            revert RentableNFC__AlreadySet();
         uint256 _limit = userInfo & ~uint96(0);
         unchecked {
             if (_limit++ >= limit) revert RentableNFC__LimitExceeded();
@@ -100,7 +105,7 @@ contract RentableNFCUpgradeable is
 
         emit UserUpdated(tokenId_, user_);
 
-        _userInfos[tokenId_] = user_.fillLast96Bits() | (userInfo & ~uint96(0));
+        _userInfos[tokenId_] = user_.fillFirst96Bits() | _limit;
     }
 
     function _setLimit(uint256 limit_) internal {

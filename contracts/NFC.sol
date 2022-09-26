@@ -7,8 +7,6 @@ import "./external/token/ERC721/presets/ERC721PresetMinterPauserAutoId.sol";
 import "./internal/Lockable.sol";
 import "./internal/Withdrawable.sol";
 
-import "./utils/NoProxy.sol";
-
 import "./external/utils/math/Math.sol";
 import "./external/utils/math/SafeCast.sol";
 
@@ -18,7 +16,6 @@ import "./libraries/StringLib.sol";
 
 contract NFC is
     INFC,
-    NoProxy,
     Lockable,
     Withdrawable,
     ReentrancyGuard,

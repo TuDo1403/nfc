@@ -2,12 +2,12 @@
 pragma solidity ^0.8.15;
 
 import "./NFC.sol";
-
+import "./utils/NoProxy.sol";
 import "./internal/RentableNFT.sol";
 
 import "./interfaces/IRentableNFC.sol";
 
-contract RentableNFC is NFC, RentableNFT, IRentableNFC {
+contract RentableNFC is NoProxy, NFC, RentableNFT, IRentableNFC {
     using SafeCast for uint256;
     using AddressLib for uint256;
     using AddressLib for address;
@@ -39,6 +39,7 @@ contract RentableNFC is NFC, RentableNFT, IRentableNFC {
         uint256 deadline_,
         bytes calldata signature_
     ) external override whenNotPaused onlyRole(MINTER_ROLE) {
+        _onlyEOA(user_);
         _checkLock(user_);
         _deposit(user_, tokenId_, deadline_, signature_);
 
@@ -60,6 +61,8 @@ contract RentableNFC is NFC, RentableNFT, IRentableNFC {
         whenNotPaused
         onlyRole(MINTER_ROLE)
     {
+        ownerOf(tokenId);
+        _onlyEOA(user);
         _checkLock(user);
         _setUser(tokenId, user);
     }
@@ -74,8 +77,8 @@ contract RentableNFC is NFC, RentableNFT, IRentableNFC {
         user = _users[tokenId].fromLast160Bits();
     }
 
-    function limitOf(uint256 tokenId) external override view returns (uint256) {
-        return _users[tokenId] & ~uint(8);
+    function limitOf(uint256 tokenId) external view override returns (uint256) {
+        return _users[tokenId] & ~uint96(0);
     }
 
     function supportsInterface(bytes4 interfaceId_)
@@ -89,6 +92,8 @@ contract RentableNFC is NFC, RentableNFT, IRentableNFC {
 
     function _setUser(uint256 tokenId_, address user_) internal {
         uint256 userInfo = _users[tokenId_];
+        if (userInfo.fromLast160Bits() == user_)
+            revert RentableNFC__AlreadySet();
         uint256 _limit = userInfo & ~uint96(0);
         unchecked {
             if (_limit++ >= limit) revert RentableNFC__LimitExceeded();
@@ -96,7 +101,7 @@ contract RentableNFC is NFC, RentableNFT, IRentableNFC {
 
         emit UserUpdated(tokenId_, user_);
 
-        _users[tokenId_] = user_.fillLast96Bits() | (userInfo & ~uint96(0));
+        _users[tokenId_] = user_.fillFirst96Bits() | _limit;
     }
 
     function _setLimit(uint256 limit_) internal {
