@@ -22,7 +22,11 @@ abstract contract WithdrawableUpgradeable is
 
     function __Withdrawable_init_unchained() internal onlyInitializing {}
 
-    function withdraw(address token_, address to_, uint256 amount_) external virtual override;
+    function withdraw(
+        address token_,
+        address to_,
+        uint256 amount_
+    ) external virtual override;
 
     /**
      * @dev This empty reserved space is put in place to allow future versions to add new

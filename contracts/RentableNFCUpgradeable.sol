@@ -71,11 +71,19 @@ contract RentableNFCUpgradeable is
             }
         }
         _setUser(id, user_);
-        IWithdrawableUpgradeable treasury;
+        address treasury;
         assembly {
             treasury := sload(_treasury.slot)
         }
-        treasury.withdraw(address(reward_), user_, amount_);
+        (bool ok, ) = treasury.call(
+            abi.encodeWithSelector(
+                IWithdrawableUpgradeable.withdraw.selector,
+                reward_,
+                user_,
+                amount_
+            )
+        );
+        if (!ok) revert Rentable__PaymentFailed();
 
         emit Redeemed(id, user_, reward_, amount_);
     }

@@ -41,10 +41,7 @@ contract TreasuryUpgradeable is
 
     EnumerableSetV2.AddressSet private _acceptedPayments;
 
-    function init()
-        external
-        initializer
-    {
+    function init() external initializer {
         address sender = _msgSender();
         _grantRole(UPGRADER_ROLE, sender);
         _grantRole(PAUSER_ROLE, sender);
@@ -81,6 +78,8 @@ contract TreasuryUpgradeable is
         address to_,
         uint256 amount_
     ) external override onlyRole(TREASURER_ROLE) {
+        if (!_acceptedPayments.contains(token_))
+            revert Treasury__PaymentNotSupported();
         _safeTransfer(token_, to_, amount_);
     }
 
@@ -93,7 +92,12 @@ contract TreasuryUpgradeable is
         return _acceptedPayments.contains(token_);
     }
 
-    function _authorizeUpgrade(address newImplementation) internal virtual override onlyRole(UPGRADER_ROLE) {}
+    function _authorizeUpgrade(address newImplementation)
+        internal
+        virtual
+        override
+        onlyRole(UPGRADER_ROLE)
+    {}
 
     uint256[49] private __gap;
 }

@@ -3,14 +3,14 @@ import { Contract, ContractFactory } from "ethers";
 import { ethers, upgrades } from "hardhat";
 
 async function main(): Promise<void> {
-    // const Treasury: ContractFactory = await ethers.getContractFactory("TreasuryUpgradeable");
-    // const treasury: Contract = await upgrades.deployProxy(
-    //   Treasury,
-    //   [process.env.VERIFIER],
-    //   { kind: "uups", initializer: "init" },
-    // );
-    // await treasury.deployed();
-    // console.log("Treasury deployed to : ", treasury.address);
+    const Treasury: ContractFactory = await ethers.getContractFactory("TreasuryUpgradeable");
+    const treasury: Contract = await upgrades.deployProxy(
+      Treasury,
+      [],
+      { kind: "uups", initializer: "init" },
+    );
+    await treasury.deployed();
+    console.log("Treasury deployed to : ", treasury.address);
 
     // const Business: ContractFactory = await ethers.getContractFactory(
     //     "BusinessUpgradeable",
@@ -42,7 +42,7 @@ async function main(): Promise<void> {
     const RentableNFC: ContractFactory = await ethers.getContractFactory("RentableNFCUpgradeable");
     const rentableNFC: Contract = await upgrades.deployProxy(
       RentableNFC,
-      ["RentableNFC", "RNFC", "https://example/token/", 10000, "0x345F31cda6738AbBe0a8a8EFe2397C2E9C60dcf2"],
+      ["RentableNFC", "RNFC", "https://example/token/", 10000, treasury.address],
       { kind: "uups", initializer: "init" },
     );
     await rentableNFC.deployed();

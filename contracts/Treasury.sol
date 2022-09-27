@@ -1,5 +1,5 @@
-// // SPDX-License-Identifier: MIT
-// pragma solidity ^0.8.15;
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.15;
 
 // import "./external/access/AccessControl.sol";
 // import "./external/security/Pausable.sol";

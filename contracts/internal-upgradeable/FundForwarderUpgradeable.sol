@@ -25,7 +25,7 @@ abstract contract FundForwarderUpgradeable is ContextUpgradeable {
         }
     }
 
-    receive() external virtual payable {
+    receive() external payable virtual {
         address treasury;
         assembly {
             treasury := sload(_treasury.slot)

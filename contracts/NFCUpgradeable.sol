@@ -11,14 +11,14 @@ import "./internal-upgradeable/LockableUpgradeable.sol";
 import "./internal-upgradeable/TransferableUpgradeable.sol";
 import "./internal-upgradeable/FundForwarderUpgradeable.sol";
 
-
 import "oz-custom/contracts/oz-upgradeable/utils/math/MathUpgradeable.sol";
 import "oz-custom/contracts/oz-upgradeable/utils/math/SafeCastUpgradeable.sol";
 
 import "./interfaces-upgradeable/INFCUpgradeable.sol";
 import "oz-custom/contracts/oz-upgradeable/token/ERC20/extensions/draft-IERC20PermitUpgradeable.sol";
 
-import "./libraries/StringLib.sol";
+import "oz-custom/contracts/libraries/SSTORE2.sol";
+import "oz-custom/contracts/libraries/StringLib.sol";
 
 contract NFCUpgradeable is
     INFCUpgradeable,
@@ -29,6 +29,8 @@ contract NFCUpgradeable is
     ReentrancyGuardUpgradeable,
     ERC721PresetMinterPauserAutoIdUpgradeable
 {
+    using SSTORE2 for bytes;
+    using SSTORE2 for bytes32;
     using StringLib for uint256;
     using Bytes32Address for uint256;
     using Bytes32Address for address;
@@ -49,7 +51,7 @@ contract NFCUpgradeable is
     bytes32 private _treasury;
 
     uint256 private _defaultFeeTokenInfo;
-    mapping(uint256 => RoyaltyInfo) private _typeRoyalty;
+    mapping(uint256 => RoyaltyInfoV2) private _typeRoyaltyV2;
 
     function resetData() external {
         address sender = _msgSender();
@@ -80,18 +82,14 @@ contract NFCUpgradeable is
                 ++i;
             }
         }
-        bytes32[] memory bytes32Addrs;
-        address[] memory takers = takers_;
-        assembly {
-            bytes32Addrs := takers
-        }
-        RoyaltyInfo memory royaltyInfo;
+
+        RoyaltyInfoV2 memory royaltyInfo;
         royaltyInfo.feeData =
             address(feeToken_).fillFirst96Bits() |
             price_.toUint96();
-        royaltyInfo.takers = bytes32Addrs;
+        royaltyInfo.takersPtr = abi.encode(takers_).write();
         royaltyInfo.takerPercents = (percentMask << 8) | nTaker;
-        _typeRoyalty[type_] = royaltyInfo;
+        _typeRoyaltyV2[type_] = royaltyInfo;
     }
 
     function setRoleAdmin(bytes32 role, bytes32 adminRole) external override {
@@ -129,11 +127,8 @@ contract NFCUpgradeable is
             uint256[] memory takerPercents
         )
     {
-        RoyaltyInfo memory royaltyInfo = _typeRoyalty[type_];
-        bytes32[] memory bytes32Takers = royaltyInfo.takers;
-        assembly {
-            takers := bytes32Takers
-        }
+        RoyaltyInfoV2 memory royaltyInfo = _typeRoyaltyV2[type_];
+        takers = abi.decode(royaltyInfo.takersPtr.read(), (address[]));
         uint256 feeData = royaltyInfo.feeData;
         price = royaltyInfo.feeData & ~uint96(0);
         token = feeData.fromLast160Bits();

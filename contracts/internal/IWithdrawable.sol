@@ -9,5 +9,9 @@ interface IWithdrawable {
     );
     event Received(address indexed sender, uint256 indexed value);
 
-    function withdraw(address token_, address to_, uint256 amount_) external;
+    function withdraw(
+        address token_,
+        address to_,
+        uint256 amount_
+    ) external;
 }

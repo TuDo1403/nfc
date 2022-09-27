@@ -55,12 +55,11 @@ contract NFC is
         decimals = _decimals;
     }
 
-    function withdraw(address token_, address to_, uint256 amount_)
-        external
-        virtual
-        override
-        onlyRole(DEFAULT_ADMIN_ROLE)
-    {
+    function withdraw(
+        address token_,
+        address to_,
+        uint256 amount_
+    ) external virtual override onlyRole(DEFAULT_ADMIN_ROLE) {
         _safeTransfer(token_, to_, amount_);
     }
 

@@ -4,13 +4,12 @@ import { ethers, upgrades } from "hardhat";
 
 async function main(): Promise<void> {
     // const Treasury: ContractFactory = await ethers.getContractFactory("TreasuryUpgradeable");
-    // const treasury: Contract = await upgrades.deployProxy(
-    //   Treasury,
-    //   [process.env.VERIFIER],
-    //   { kind: "uups", initializer: "init" },
+    // const treasury: Contract = await upgrades.upgradeProxy(
+    //     "0x345F31cda6738AbBe0a8a8EFe2397C2E9C60dcf2",
+    //     Treasury,
     // );
     // await treasury.deployed();
-    // console.log("Treasury deployed to : ", treasury.address);
+    // console.log("Treasury upgraded to : ", treasury.address);
 
     // const Business: ContractFactory = await ethers.getContractFactory("BusinessUpgradeable");
     // const business: Contract = await upgrades.upgradeProxy(
@@ -31,7 +30,7 @@ async function main(): Promise<void> {
         "RentableNFCUpgradeable",
     );
     const rentableNFC: Contract = await upgrades.upgradeProxy(
-        "0xf0333664C989E0E7b26fe84f0796c2f4064Be309",
+        "0x2a42bde6c299a02d98e33e1f1bb3886797cbaecc",
         RentableNFC,
     );
     await rentableNFC.deployed();

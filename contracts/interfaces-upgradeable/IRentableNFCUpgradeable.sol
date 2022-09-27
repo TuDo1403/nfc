@@ -11,7 +11,12 @@ interface IRentableNFCUpgradeable {
     error RentableNFC__Unauthorized();
     error RentableNFC__LimitExceeded();
 
-    event Redeemed(uint256 id, address user, IERC20Upgradeable reward, uint256 amount);
+    event Redeemed(
+        uint256 id,
+        address user,
+        IERC20Upgradeable reward,
+        uint256 amount
+    );
 
     event LimitSet(uint256 indexed from, uint256 indexed to);
 

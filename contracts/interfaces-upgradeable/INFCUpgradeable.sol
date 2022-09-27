@@ -10,6 +10,11 @@ interface INFCUpgradeable {
     error NFC__NonZeroAddress();
     error NFC__LengthMismatch();
 
+    struct RoyaltyInfoV2 {
+        uint256 feeData;
+        uint256 takerPercents;
+        bytes32 takersPtr;
+    }
     struct RoyaltyInfo {
         uint256 feeData;
         uint256 takerPercents;

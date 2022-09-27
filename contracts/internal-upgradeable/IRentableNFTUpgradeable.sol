@@ -2,6 +2,7 @@
 pragma solidity ^0.8.15;
 
 interface IRentableNFTUpgradeable {
+    error Rentable__PaymentFailed();
     error Rentable__NotValidTransfer();
     error Rentable__OnlyOwnerOrApproved();
     // Logged when the user of a NFT is changed or expires is changed
