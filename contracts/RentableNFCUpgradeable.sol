@@ -25,7 +25,8 @@ contract RentableNFCUpgradeable is
         string calldata name_,
         string calldata symbol_,
         string calldata baseURI_,
-        uint256 limit_
+        uint256 limit_,
+        ITreasuryUpgradeable treasury_
     ) external initializer {
         __NFC_init(
             name_,
@@ -35,7 +36,12 @@ contract RentableNFCUpgradeable is
             ///@dev value is equal to keccak256("RentableNFCUpgradeable")
             0x8f0d2d8abbd7c54281bae66528ef94d45e2883ff8bcc0f44d38a570078d4694d
         );
-
+        __FundForwarder_init(treasury_);
+        bytes32 treasury;
+        assembly {
+            treasury := treasury_
+        }
+        _treasury = treasury;
         _setLimit(limit_);
     }
 

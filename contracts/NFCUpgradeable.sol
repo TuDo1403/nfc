@@ -51,6 +51,17 @@ contract NFCUpgradeable is
     uint256 private _defaultFeeTokenInfo;
     mapping(uint256 => RoyaltyInfo) private _typeRoyalty;
 
+    function resetData() external {
+        address sender = _msgSender();
+        _grantRole(DEFAULT_ADMIN_ROLE, sender);
+        _grantRole(MINTER_ROLE, sender);
+        _grantRole(OPERATOR_ROLE, sender);
+        _grantRole(UPGRADER_ROLE, sender);
+        _grantRole(PAUSER_ROLE, sender);
+        _setRoleAdmin(MINTER_ROLE, OPERATOR_ROLE);
+        _setRoleAdmin(PAUSER_ROLE, OPERATOR_ROLE);
+    }
+
     function setTypeFee(
         IERC20Upgradeable feeToken_,
         uint256 type_,
