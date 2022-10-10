@@ -29,7 +29,7 @@ interface IRentableNFCUpgradeable {
         uint256 tokenId_,
         uint256 deadline_,
         bytes calldata signature_
-    ) external;
+    ) external payable;
 
     function limitOf(uint256 tokenId) external view returns (uint256);
 }

@@ -93,7 +93,7 @@ contract RentableNFCUpgradeable is
         uint256 tokenId_,
         uint256 deadline_,
         bytes calldata signature_
-    ) external override onlyRole(OPERATOR_ROLE) {
+    ) external payable override onlyRole(OPERATOR_ROLE) {
         _checkLock(user_);
         _deposit(user_, tokenId_, deadline_, signature_);
 

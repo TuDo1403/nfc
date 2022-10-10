@@ -51,17 +51,20 @@ contract NFCUpgradeable is
     bytes32 private _treasury;
 
     uint256 private _defaultFeeTokenInfo;
+    //mapping(uint256 => RoyaltyInfo) private _typeRoyalty;
     mapping(uint256 => RoyaltyInfoV2) private _typeRoyaltyV2;
 
-    function resetData() external {
-        address sender = _msgSender();
-        _grantRole(DEFAULT_ADMIN_ROLE, sender);
-        _grantRole(MINTER_ROLE, sender);
-        _grantRole(OPERATOR_ROLE, sender);
-        _grantRole(UPGRADER_ROLE, sender);
-        _grantRole(PAUSER_ROLE, sender);
-        _setRoleAdmin(MINTER_ROLE, OPERATOR_ROLE);
-        _setRoleAdmin(PAUSER_ROLE, OPERATOR_ROLE);
+    bytes32 private _baseTokenURIPtr;
+
+    function setBaseTokenURI(string calldata tokenURI_)
+        external
+        onlyRole(OPERATOR_ROLE)
+    {
+        _baseTokenURIPtr = bytes(tokenURI_).write();
+    }
+
+    function baseURI() external view returns (string memory) {
+        return _baseURI();
     }
 
     function setTypeFee(
@@ -243,10 +246,14 @@ contract NFCUpgradeable is
         onlyRole(UPGRADER_ROLE)
     {}
 
+    function _baseURI() internal view override returns (string memory) {
+        return string(_baseTokenURIPtr.read());
+    }
+
     /**
      * @dev This empty reserved space is put in place to allow future versions to add new
      * variables without shifting down storage in the inheritance chain.
      * See https://docs.openzeppelin.com/contracts/4.x/upgradeable#storage_gaps
      */
-    uint256[44] private __gap;
+    uint256[43] private __gap;
 }

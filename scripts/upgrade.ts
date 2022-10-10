@@ -30,7 +30,9 @@ async function main(): Promise<void> {
         "RentableNFCUpgradeable",
     );
     const rentableNFC: Contract = await upgrades.upgradeProxy(
-        "0x2a42bde6c299a02d98e33e1f1bb3886797cbaecc",
+        //"0xB05954811D64fE3e76E1E3A46F9E42047D2B36ae", // bsc
+        //"0x5840e4c2c918941e0a0F246A0fc382567F83Db1f",   // goerli
+        "0xf0333664c989e0e7b26fe84f0796c2f4064be309",   // tomo
         RentableNFC,
     );
     await rentableNFC.deployed();
