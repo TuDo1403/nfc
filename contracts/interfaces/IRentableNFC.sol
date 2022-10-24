@@ -7,6 +7,7 @@ interface IRentableNFC {
     error RentableNFC__AlreadySet();
     error RentableNFC__Unauthorized();
     error RentableNFC__LimitExceeded();
+    error RentableNFC__NotValidTransfer();
 
     event LimitSet(uint256 indexed from, uint256 indexed to);
 

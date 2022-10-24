@@ -42,7 +42,7 @@ async function main(): Promise<void> {
     const RentableNFC: ContractFactory = await ethers.getContractFactory("RentableNFCUpgradeable");
     const rentableNFC: Contract = await upgrades.deployProxy(
       RentableNFC,
-      ["RentableNFC", "RNFC", "https://example/token/", 10000, treasury.address],
+      ["RentableNFC", "RNFC", "https://nft-card.w3w.app/api/nft-cards/metadata/97/0xb05954811d64fe3e76e1e3a46f9e42047d2b36ae/", 10000, treasury.address],
       { kind: "uups", initializer: "init" },
     );
     await rentableNFC.deployed();

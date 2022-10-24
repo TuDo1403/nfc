@@ -10,6 +10,7 @@ interface IRentableNFCUpgradeable {
     error RentableNFC__AlreadySet();
     error RentableNFC__Unauthorized();
     error RentableNFC__LimitExceeded();
+    error RentableNFC__NotValidTransfer();
 
     event Redeemed(
         uint256 id,

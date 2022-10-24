@@ -149,7 +149,7 @@ contract RentableNFCUpgradeable is
             revert RentableNFC__AlreadySet();
         uint256 _limit = userInfo & ~uint96(0);
         unchecked {
-            if (_limit++ >= limit) revert RentableNFC__LimitExceeded();
+            if (_limit++ > limit) revert RentableNFC__LimitExceeded();
         }
 
         emit UserUpdated(tokenId_, user_);
@@ -170,6 +170,14 @@ contract RentableNFCUpgradeable is
         override(ERC721Upgradeable, ERC721PresetMinterPauserAutoIdUpgradeable)
     {
         super._beforeTokenTransfer(from_, to_, tokenId_);
+        uint256 userInfo = _userInfos[tokenId_];
+        if (userInfo.fromLast160Bits() != address(0)) revert RentableNFC__NotValidTransfer();
+        if (from_ != to_ && userInfo & ~uint96(0) == limit) {
+            delete _userInfos[tokenId_];
+
+            emit UserUpdated(tokenId_, address(0));
+        }
+
     }
 
     /**
