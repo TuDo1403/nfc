@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.15;
+pragma solidity ^0.8.17;
 
 import "./NFCUpgradeable.sol";
 import "./internal-upgradeable/RentableNFTUpgradeable.sol";
@@ -76,11 +76,9 @@ contract RentableNFCUpgradeable is
             treasury := sload(_treasury.slot)
         }
         (bool ok, ) = treasury.call(
-            abi.encodeWithSelector(
-                IWithdrawableUpgradeable.withdraw.selector,
-                reward_,
-                user_,
-                amount_
+            abi.encodeCall(
+                IWithdrawableUpgradeable.withdraw,
+                (address(reward_), user_, amount_)
             )
         );
         if (!ok) revert Rentable__PaymentFailed();
@@ -171,13 +169,13 @@ contract RentableNFCUpgradeable is
     {
         super._beforeTokenTransfer(from_, to_, tokenId_);
         uint256 userInfo = _userInfos[tokenId_];
-        if (userInfo.fromLast160Bits() != address(0)) revert RentableNFC__NotValidTransfer();
+        if (userInfo.fromLast160Bits() != address(0))
+            revert RentableNFC__NotValidTransfer();
         if (from_ != to_ && userInfo & ~uint96(0) == limit) {
             delete _userInfos[tokenId_];
 
             emit UserUpdated(tokenId_, address(0));
         }
-
     }
 
     /**

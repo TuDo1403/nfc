@@ -1,12 +1,14 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.15;
+pragma solidity ^0.8.17;
+
+import "oz-custom/contracts/oz/token/ERC20/IERC20.sol";
 
 error Transferable__TransferFailed();
 error Transferable__InvalidArguments();
 
 abstract contract Transferable {
     function _safeTransferFrom(
-        address token_,
+        IERC20 token_,
         address from_,
         address to_,
         uint256 value_
@@ -14,7 +16,8 @@ abstract contract Transferable {
         if (value_ == 0 || to_ == address(0))
             revert Transferable__InvalidArguments();
         bool success;
-        if (token_ == address(0)) success = __nativeTransfer(to_, value_);
+        if (address(token_) == address(0))
+            success = __nativeTransfer(to_, value_);
         else {
             assembly {
                 let freeMemoryPointer := mload(0x40)
@@ -41,7 +44,7 @@ abstract contract Transferable {
     }
 
     function _safeTransfer(
-        address token_,
+        IERC20 token_,
         address to_,
         uint256 value_
     ) internal virtual {
@@ -49,7 +52,8 @@ abstract contract Transferable {
             revert Transferable__InvalidArguments();
 
         bool success;
-        if (token_ == address(0)) success = __nativeTransfer(to_, value_);
+        if (address(token_) == address(0))
+            success = __nativeTransfer(to_, value_);
         else {
             assembly {
                 // Get a pointer to some free memory.

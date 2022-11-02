@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.15;
+pragma solidity ^0.8.17;
 
 ///@dev can store up to 256 slots
 library BitMap256 {

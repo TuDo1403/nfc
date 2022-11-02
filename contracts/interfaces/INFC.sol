@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.15;
+pragma solidity ^0.8.17;
 
 import "oz-custom/contracts/oz/token/ERC20/extensions/draft-IERC20Permit.sol";
 

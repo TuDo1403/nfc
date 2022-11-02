@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.15;
+pragma solidity ^0.8.17;
 
 import "oz-custom/contracts/oz-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import "oz-custom/contracts/oz-upgradeable/access/AccessControlUpgradeable.sol";
@@ -80,7 +80,7 @@ contract TreasuryUpgradeable is
     ) external override onlyRole(TREASURER_ROLE) {
         if (!_acceptedPayments.contains(token_))
             revert Treasury__PaymentNotSupported();
-        _safeTransfer(token_, to_, amount_);
+        _safeTransfer(IERC20Upgradeable(token_), to_, amount_);
     }
 
     function acceptedPayment(address token_)

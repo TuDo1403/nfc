@@ -1,7 +1,9 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.15;
+pragma solidity ^0.8.17;
 
 import "oz-custom/contracts/oz-upgradeable/proxy/utils/Initializable.sol";
+
+import "oz-custom/contracts/oz-upgradeable/token/ERC20/IERC20Upgradeable.sol";
 
 error Transferable__TransferFailed();
 error Transferable__InvalidArguments();
@@ -12,7 +14,7 @@ abstract contract TransferableUpgradeable is Initializable {
     function __Transferable_init_unchained() internal onlyInitializing {}
 
     function _safeTransferFrom(
-        address token_,
+        IERC20Upgradeable token_,
         address from_,
         address to_,
         uint256 value_
@@ -20,7 +22,8 @@ abstract contract TransferableUpgradeable is Initializable {
         if (value_ == 0 || to_ == address(0))
             revert Transferable__InvalidArguments();
         bool success;
-        if (token_ == address(0)) success = __nativeTransfer(to_, value_);
+        if (address(token_) == address(0))
+            success = __nativeTransfer(to_, value_);
         else {
             assembly {
                 let freeMemoryPointer := mload(0x40)
@@ -47,7 +50,7 @@ abstract contract TransferableUpgradeable is Initializable {
     }
 
     function _safeTransfer(
-        address token_,
+        IERC20Upgradeable token_,
         address to_,
         uint256 value_
     ) internal virtual {
@@ -55,7 +58,8 @@ abstract contract TransferableUpgradeable is Initializable {
             revert Transferable__InvalidArguments();
 
         bool success;
-        if (token_ == address(0)) success = __nativeTransfer(to_, value_);
+        if (address(token_) == address(0))
+            success = __nativeTransfer(to_, value_);
         else {
             assembly {
                 // Get a pointer to some free memory.

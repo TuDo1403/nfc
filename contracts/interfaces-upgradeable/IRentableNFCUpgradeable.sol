@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.15;
+pragma solidity ^0.8.17;
 
 import "./ITreasuryUpgradeable.sol";
 import "oz-custom/contracts/oz-upgradeable/token/ERC20/IERC20Upgradeable.sol";

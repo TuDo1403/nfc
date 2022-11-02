@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.15;
+pragma solidity ^0.8.17;
 
 import "./NFC.sol";
 import "./utils/NoProxy.sol";
@@ -26,8 +26,8 @@ contract RentableNFC is NoProxy, NFC, RentableNFT, IRentableNFC {
             symbol_,
             baseURI_,
             18,
-            ///@dev value is equal to keccak256("RentableNFC_v1")
-            0x94853ebc602a26ed326beee3ed781c1719447aa3075a7acd18a2640e416a1bb6
+            ///@dev value is equal to keccak256("RentableNFC_v2")
+            0xf704055ed058305b999b8d89b8596dee1a720052179d181929badb532faad68c
         )
     {
         _setLimit(limit_);

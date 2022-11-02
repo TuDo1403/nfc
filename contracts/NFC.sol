@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.15;
+pragma solidity ^0.8.17;
 
 import "oz-custom/contracts/oz/security/ReentrancyGuard.sol";
 import "oz-custom/contracts/oz/token/ERC721/presets/ERC721PresetMinterPauserAutoId.sol";
@@ -43,7 +43,7 @@ contract NFC is
         bytes32 version_
     )
         payable
-        EIP712(name_, "1")
+        Signable(name_, "1")
         ERC721PresetMinterPauserAutoId(name_, symbol_, baseURI_)
     {
         version = version_;
@@ -60,7 +60,7 @@ contract NFC is
         address to_,
         uint256 amount_
     ) external virtual override onlyRole(DEFAULT_ADMIN_ROLE) {
-        _safeTransfer(token_, to_, amount_);
+        _safeTransfer(IERC20(token_), to_, amount_);
     }
 
     function mint(address to_, uint256 type_)
@@ -208,7 +208,7 @@ contract NFC is
         price *= 100; // convert percentage to 1e4
         for (uint256 i; i < nTakers; ) {
             _safeTransferFrom(
-                token,
+                IERC20(token),
                 sender_,
                 takers[i],
                 price.mulDiv(takerPercents[i], 1e4, Math.Rounding.Zero)

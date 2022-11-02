@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.15;
+pragma solidity ^0.8.17;
 
 import "oz-custom/contracts/oz-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import "oz-custom/contracts/oz-upgradeable/security/ReentrancyGuardUpgradeable.sol";
@@ -11,6 +11,7 @@ import "./internal-upgradeable/LockableUpgradeable.sol";
 import "./internal-upgradeable/TransferableUpgradeable.sol";
 import "./internal-upgradeable/FundForwarderUpgradeable.sol";
 
+import "oz-custom/contracts/libraries/FixedPointMathLib.sol";
 import "oz-custom/contracts/oz-upgradeable/utils/math/MathUpgradeable.sol";
 import "oz-custom/contracts/oz-upgradeable/utils/math/SafeCastUpgradeable.sol";
 
@@ -34,7 +35,7 @@ contract NFCUpgradeable is
     using StringLib for uint256;
     using Bytes32Address for uint256;
     using Bytes32Address for address;
-    using MathUpgradeable for uint256;
+    using FixedPointMathLib for uint256;
     using SafeCastUpgradeable for uint256;
 
     ///@dev value is equal to keccak256("UPGRADER_ROLE")
@@ -51,7 +52,6 @@ contract NFCUpgradeable is
     bytes32 private _treasury;
 
     uint256 private _defaultFeeTokenInfo;
-    //mapping(uint256 => RoyaltyInfo) private _typeRoyalty;
     mapping(uint256 => RoyaltyInfoV2) private _typeRoyaltyV2;
 
     bytes32 private _baseTokenURIPtr;
@@ -181,8 +181,8 @@ contract NFCUpgradeable is
         uint256 decimals_,
         bytes32 version_
     ) internal onlyInitializing {
-        __ReentrancyGuard_init();
-        __EIP712_init(name_, "1");
+        __ReentrancyGuard_init_unchained();
+        __Signable_init(name_, "1");
         __ERC721PresetMinterPauserAutoId_init(name_, symbol_, baseURI_);
 
         address sender = _msgSender();
@@ -206,32 +206,29 @@ contract NFCUpgradeable is
             address[] memory takers,
             uint256[] memory takerPercents
         ) = royaltyInfoOf(typeOf(tokenId_));
-        price *= 10**decimals;
         if (signature_.length == 65) {
             if (block.timestamp > deadline_) revert NFC__Expired();
             (bytes32 r, bytes32 s, uint8 v) = _splitSignature(signature_);
             IERC20PermitUpgradeable(token).permit(
                 user_,
                 address(this),
-                price, // convert to wei
+                price,
                 deadline_,
                 v,
                 r,
                 s
             );
+            if (msg.value != 0) _safeNativeTransfer(user_, msg.value);
         }
         emit Deposited(tokenId_, user_, price);
+        if (price == 0) return;
         price *= 100; // convert percentage to 1e4
         for (uint256 i; i < nTakers; ) {
             _safeTransferFrom(
-                token,
+                IERC20Upgradeable(token),
                 user_,
                 takers[i],
-                price.mulDiv(
-                    takerPercents[i],
-                    1e4,
-                    MathUpgradeable.Rounding.Zero
-                )
+                price.mulDivDown(takerPercents[i], 1e4)
             );
             unchecked {
                 ++i;
